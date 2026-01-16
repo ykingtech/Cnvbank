@@ -22,7 +22,6 @@
         <div class="glass p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center border border-white/50">
             <h1 class="text-3xl font-bold text-blue-900 mb-2">CNV BANK 🏦</h1>
             <p class="text-gray-500 mb-8">Secure & Smart Banking</p>
-            
             <button onclick="googleLogin()" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 p-4 rounded-xl shadow-md hover:bg-gray-50 transition transform active:scale-95">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
                 <span class="font-bold text-gray-700">Google Login</span>
@@ -33,28 +32,20 @@
     <div id="setupView" class="hidden min-h-screen flex flex-col justify-center items-center p-4">
         <div class="glass p-6 rounded-2xl shadow-2xl max-w-md w-full border-l-4 border-yellow-500">
             <h2 class="text-xl font-bold text-gray-800 mb-2">ගිණුම සක්‍රිය කිරීම ⚠️</h2>
-            <p class="text-sm text-gray-600 mb-4">ඉදිරියට යාමට ඔබගේ බැංකු විස්තර සහ හැඳුනුම්පත ලබා දිය යුතුය.</p>
-
             <label class="block text-sm font-bold text-gray-700 mt-3">බැංකුවේ නම</label>
             <input type="text" id="regBankName" placeholder="උදා: BOC / Commercial" class="w-full p-2 border rounded bg-gray-50">
-
             <label class="block text-sm font-bold text-gray-700 mt-3">ශාඛාව (Branch)</label>
-            <input type="text" id="regBranchName" placeholder="උදා: කුරුණෑගල / කොළඹ" class="w-full p-2 border rounded bg-gray-50">
-
+            <input type="text" id="regBranchName" placeholder="උදා: කුරුණෑගල" class="w-full p-2 border rounded bg-gray-50">
             <label class="block text-sm font-bold text-gray-700 mt-3">ගිණුම් අංකය</label>
             <input type="number" id="regAccNo" placeholder="Account Number" class="w-full p-2 border rounded bg-gray-50">
-
-            <label class="block text-sm font-bold text-gray-700 mt-3">NIC ෆොටෝ එක (ඉදිරිපස)</label>
+            <label class="block text-sm font-bold text-gray-700 mt-3">NIC ෆොටෝ එක</label>
             <input type="file" id="regNicFile" accept="image/*" class="w-full text-sm text-gray-500 mt-1" onchange="processImage(this, 'nicPreview')">
             <img id="nicPreview" class="image-preview">
-            
-            <button onclick="completeProfile()" id="saveProfileBtn" class="w-full bg-blue-700 text-white p-3 rounded-xl font-bold mt-6 shadow hover:bg-blue-800">
-                තොරතුරු තහවුරු කරන්න ✅
-            </button>
+            <button onclick="completeProfile()" id="saveProfileBtn" class="w-full bg-blue-700 text-white p-3 rounded-xl font-bold mt-6 shadow hover:bg-blue-800">තහවුරු කරන්න ✅</button>
         </div>
     </div>
 
-    <div id="dashboardView" class="hidden flex-col min-h-screen p-4 max-w-md mx-auto w-full relative z-10">
+    <div id="dashboardView" class="hidden flex-col min-h-screen p-4 max-w-md mx-auto w-full relative z-10 pb-20">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-800 p-6 rounded-3xl text-white shadow-xl mb-6">
             <div class="flex justify-between items-start">
                 <div>
@@ -77,38 +68,42 @@
             </button>
         </div>
 
+        <button onclick="toggleSection('historyBox')" class="w-full bg-slate-800 text-white p-3 rounded-xl font-bold shadow-lg mb-4 flex justify-between items-center px-6">
+            <span>📜 ගනුදෙනු ඉතිහාසය</span>
+            <span>➔</span>
+        </button>
+
         <div id="depositBox" class="hidden glass p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-green-500 animate-fade-in">
             <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 text-center mb-4">
                 <h3 class="text-red-700 font-bold text-xl">PEOPLE'S BANK</h3>
                 <p class="text-xs text-gray-500 font-bold uppercase">Kurunegala Maliyadewa Branch</p>
-                
                 <div class="my-3 text-left bg-white p-3 rounded border border-yellow-100">
                     <p class="text-[10px] text-gray-400 uppercase tracking-widest">Account Name</p>
-                    <p class="text-xs font-bold text-gray-800 leading-tight">MR UVINDU INDUWARA BANDARA THENNAKOON THENNAKOON MUDIYANSELAGE</p>
+                    <p class="text-xs font-bold text-gray-800 leading-tight">MR UVINDU INDUWARA BANDARA THENNAKOON...</p>
                 </div>
-                
                 <div class="flex items-center justify-center gap-2 mt-1 bg-white p-2 rounded border border-yellow-100 shadow-sm">
                     <span class="text-lg font-bold text-gray-800 tracking-wider">226-2-001-5-0072312</span>
                     <button onclick="navigator.clipboard.writeText('226200150072312'); alert('Copied!');" class="text-xs bg-gray-200 hover:bg-gray-300 p-2 rounded font-bold">📋 Copy</button>
                 </div>
             </div>
-
-            <h3 class="font-bold text-gray-800 mb-2">Step 2: විස්තර එවන්න</h3>
-            
             <input type="number" id="depositAmount" placeholder="තැන්පත් කළ මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-center font-bold">
-            
             <label class="block text-sm font-bold text-gray-600 mb-1">Slip එකේ ෆොටෝ එකක් දාන්න 👇</label>
             <input type="file" id="depositSlipFile" accept="image/*" class="w-full text-sm text-gray-500 mb-2" onchange="processImage(this, 'slipPreview')">
             <img id="slipPreview" class="image-preview mb-3">
-
             <button onclick="requestDeposit()" id="depositBtn" class="w-full bg-green-600 text-white p-3 rounded-xl font-bold shadow-lg">ඉල්ලීම යවන්න</button>
         </div>
 
         <div id="withdrawBox" class="hidden glass p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-red-500 animate-fade-in">
             <h3 class="font-bold text-gray-800 mb-2">මුදල් ආපසු ගැනීම</h3>
-            <p class="text-xs text-gray-500 mb-3">ඔබේ ලියාපදිංචි බැංකු ගිණුමට මුදල් එවනු ලැබේ.</p>
             <input type="number" id="withdrawAmount" placeholder="ගන්නා මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-center font-bold">
             <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white p-3 rounded-xl font-bold shadow-lg">WhatsApp ඉල්ලීම යවන්න</button>
+        </div>
+
+        <div id="historyBox" class="hidden glass p-4 rounded-2xl shadow-lg mb-4">
+            <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">මෑත කාලීන ගනුදෙනු</h3>
+            <div id="historyList" class="space-y-3">
+                <p class="text-center text-gray-400 text-sm">පැරණි දත්ත නැත.</p>
+            </div>
         </div>
 
         <button onclick="logout()" class="w-full bg-gray-200 text-gray-700 p-3 rounded-xl font-bold mt-auto">Logout</button>
@@ -116,10 +111,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, where, updateDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
             authDomain: "cnvbankbyuandy.firebaseapp.com",
@@ -134,20 +128,15 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
-
-        let currentUser = null;
-        let userData = null;
         const ADMIN_WHATSAPP = "94726284277";
+        let currentUser = null, userData = null;
 
-        // Toggle UI
         window.toggleSection = (id) => {
-            document.getElementById('depositBox').classList.add('hidden');
-            document.getElementById('withdrawBox').classList.add('hidden');
+            ['depositBox', 'withdrawBox', 'historyBox'].forEach(box => document.getElementById(box).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
         };
 
-        // Auth
-        window.googleLogin = () => { signInWithPopup(auth, provider).catch(err => alert("Login Error")); };
+        window.googleLogin = () => signInWithPopup(auth, provider).catch(err => alert("Login Error"));
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -156,13 +145,7 @@
                 const userSnap = await getDoc(userRef);
 
                 if (!userSnap.exists()) {
-                    await setDoc(userRef, { 
-                        name: user.displayName, 
-                        email: user.email, 
-                        photo: user.photoURL, 
-                        balance: 0, 
-                        profileComplete: false 
-                    });
+                    await setDoc(userRef, { name: user.displayName, email: user.email, photo: user.photoURL, balance: 0, profileComplete: false });
                     document.getElementById('loginView').classList.add('hidden');
                     document.getElementById('setupView').classList.remove('hidden');
                 } else {
@@ -176,32 +159,24 @@
                 }
             } else {
                 document.getElementById('dashboardView').classList.add('hidden');
-                document.getElementById('setupView').classList.add('hidden');
                 document.getElementById('loginView').classList.remove('hidden');
             }
         });
 
-        // Image Processing (Compresses images to Base64)
         let tempImages = { nicPreview: "", slipPreview: "" };
-
         window.processImage = (input, previewId) => {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function (e) {
-                    const imgPreview = document.getElementById(previewId);
-                    imgPreview.src = e.target.result;
-                    imgPreview.style.display = 'block';
-                    
-                    const image = new Image();
-                    image.src = e.target.result;
-                    image.onload = () => {
+                reader.onload = (e) => {
+                    document.getElementById(previewId).src = e.target.result;
+                    document.getElementById(previewId).style.display = 'block';
+                    const img = new Image(); img.src = e.target.result;
+                    img.onload = () => {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        // Resize max width to 600px to save DB space
-                        const scaleSize = 600 / image.width;
-                        canvas.width = 600;
-                        canvas.height = image.height * scaleSize;
-                        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                        const scale = 600 / img.width;
+                        canvas.width = 600; canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         tempImages[previewId] = canvas.toDataURL('image/jpeg', 0.7);
                     };
                 };
@@ -209,24 +184,11 @@
             }
         };
 
-        // Profile Completion
         window.completeProfile = async () => {
-            const bankName = document.getElementById('regBankName').value;
-            const branchName = document.getElementById('regBranchName').value; // New Field
-            const accNo = document.getElementById('regAccNo').value;
-            
-            if(!bankName || !branchName || !accNo || !tempImages['nicPreview']) 
-                return alert("කරුණාකර බැංකුව, ශාඛාව, ගිණුම් අංකය සහ NIC ඡායාරූපය ලබා දෙන්න.");
-
+            const bName = document.getElementById('regBankName').value, branch = document.getElementById('regBranchName').value, acc = document.getElementById('regAccNo').value;
+            if(!bName || !branch || !acc || !tempImages['nicPreview']) return alert("සියලු විස්තර අවශ්‍යයි.");
             document.getElementById('saveProfileBtn').innerText = "Saving...";
-            
-            await updateDoc(doc(db, "users", currentUser.uid), {
-                bankName: bankName,
-                bankBranch: branchName,
-                bankAcc: accNo,
-                nicImage: tempImages['nicPreview'],
-                profileComplete: true
-            });
+            await updateDoc(doc(db, "users", currentUser.uid), { bankName: bName, bankBranch: branch, bankAcc: acc, nicImage: tempImages['nicPreview'], profileComplete: true });
             location.reload();
         };
 
@@ -234,92 +196,70 @@
             document.getElementById('loginView').classList.add('hidden');
             document.getElementById('setupView').classList.add('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
-            
             document.getElementById('displayName').innerText = currentUser.displayName.split(" ")[0];
             document.getElementById('userPhoto').src = currentUser.photoURL;
+            onSnapshot(doc(db, "users", currentUser.uid), (doc) => document.getElementById('userBalance').innerText = doc.data().balance.toFixed(2));
+            loadHistory();
+        }
 
-            onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
-                userData = doc.data();
-                document.getElementById('userBalance').innerText = userData.balance.toFixed(2);
+        function loadHistory() {
+            const q = query(collection(db, "transactions"), where("userId", "==", currentUser.uid), orderBy("date", "desc"), limit(10));
+            onSnapshot(q, (snapshot) => {
+                const list = document.getElementById('historyList');
+                list.innerHTML = "";
+                if(snapshot.empty) { list.innerHTML = "<p class='text-center text-gray-400'>No records.</p>"; return; }
+                snapshot.forEach(doc => {
+                    const t = doc.data();
+                    const isDep = t.type === 'deposit';
+                    const statusColor = t.status === 'success' ? 'text-green-500' : 'text-yellow-500';
+                    const icon = t.status === 'success' ? '✅' : '⏳';
+                    
+                    list.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded bg-white border border-gray-100 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full ${isDep?'bg-green-100 text-green-600':'bg-red-100 text-red-600'} flex items-center justify-center font-bold text-xs">${isDep?'IN':'OUT'}</div>
+                                <div>
+                                    <p class="font-bold text-gray-700 text-sm">${isDep ? 'Deposit' : 'Withdraw'}</p>
+                                    <p class="text-[10px] text-gray-400">${new Date(t.date.seconds*1000).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-gray-800">Rs.${t.amount}</p>
+                                <p class="text-[10px] ${statusColor} font-bold uppercase">${t.status} ${icon}</p>
+                            </div>
+                        </div>
+                    `;
+                });
             });
         }
 
-        // Deposit Request (Sends Slip)
         window.requestDeposit = async () => {
             const amount = parseFloat(document.getElementById('depositAmount').value);
-            const slipImg = tempImages['slipPreview'];
-
-            if (!amount) return alert("මුදල ඇතුළත් කරන්න");
-            if (!slipImg) return alert("කරුණාකර ස්ලිප් එකේ ෆොටෝ එකක් දාන්න");
-
-            const btn = document.getElementById('depositBtn');
-            btn.innerText = "යවමින් පවතී...";
-            btn.disabled = true;
-
-            try {
-                await addDoc(collection(db, "transactions"), {
-                    userId: currentUser.uid,
-                    userName: currentUser.displayName,
-                    type: "deposit",
-                    amount: amount,
-                    status: "pending",
-                    slipImage: slipImg, // Uploading Slip
-                    date: new Date()
-                });
-                alert("ස්ලිප් එක යැව්වා! Admin බලනකම් ඉන්න.");
-                document.getElementById('depositBox').classList.add('hidden');
-                document.getElementById('depositAmount').value = "";
-                document.getElementById('slipPreview').style.display = 'none';
-                tempImages['slipPreview'] = "";
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-            btn.innerText = "ඉල්ලීම යවන්න";
-            btn.disabled = false;
+            if (!amount || !tempImages['slipPreview']) return alert("මුදල සහ Slip එක අවශ්‍යයි");
+            document.getElementById('depositBtn').innerText = "Sending...";
+            await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: currentUser.displayName, type: "deposit", amount, status: "pending", slipImage: tempImages['slipPreview'], date: new Date() });
+            alert("Sent!"); location.reload();
         };
 
-        // Withdraw Request (Includes Branch Info)
         window.requestWithdraw = async () => {
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            if (!amount) return alert("මුදල ඇතුළත් කරන්න");
-
-            // Save to DB
-            await addDoc(collection(db, "transactions"), {
-                userId: currentUser.uid,
-                userName: currentUser.displayName,
-                userBankDetails: `${userData.bankName} (${userData.bankBranch}) - ${userData.bankAcc}`,
-                type: "withdraw",
-                amount: amount,
-                status: "pending",
-                date: new Date()
-            });
-
-            // WhatsApp Message
-            const msg = `CNV Bank Withdraw Request:%0A👤 Name: ${currentUser.displayName}%0A💸 Amount: Rs. ${amount}%0A🏦 Bank: ${userData.bankName}%0A📍 Branch: ${userData.bankBranch}%0A🔢 Acc No: ${userData.bankAcc}%0A🕒 Time: ${new Date().toLocaleTimeString()}`;
-            
-            window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${msg}`, '_blank');
-            document.getElementById('withdrawBox').classList.add('hidden');
+            if (!amount) return alert("මුදල අවශ්‍යයි");
+            await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: currentUser.displayName, userBankDetails: `${userData.bankName} (${userData.bankBranch}) - ${userData.bankAcc}`, type: "withdraw", amount, status: "pending", date: new Date() });
+            window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=Withdraw Request: Rs. ${amount}`, '_blank');
+            location.reload();
         };
 
         window.logout = () => signOut(auth).then(() => location.reload());
 
-        // Background Animation
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
-        const geo = new THREE.BufferGeometry();
-        const count = 500;
-        const pos = new Float32Array(count * 3);
-        for(let i=0; i<count*3; i++) pos[i] = (Math.random()-0.5) * 10;
+        const geo = new THREE.BufferGeometry(); const pos = new Float32Array(500 * 3);
+        for(let i=0; i<1500; i++) pos[i] = (Math.random()-0.5) * 10;
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
         const mat = new THREE.PointsMaterial({ size: 0.05, color: 0x4f46e5 });
-        const mesh = new THREE.Points(geo, mat);
-        scene.add(mesh);
-        camera.position.z = 5;
-        function animate() { requestAnimationFrame(animate); mesh.rotation.y += 0.002; renderer.render(scene, camera); }
-        animate();
+        const mesh = new THREE.Points(geo, mat); scene.add(mesh); camera.position.z = 5;
+        function animate() { requestAnimationFrame(animate); mesh.rotation.y += 0.002; renderer.render(scene, camera); } animate();
     </script>
 </body>
 </html>
