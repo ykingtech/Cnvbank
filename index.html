@@ -15,16 +15,48 @@
         .tree-container { transition: all 1s ease-in-out; }
         @keyframes grow { 0% { transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .grow-anim { animation: grow 2s infinite ease-in-out; }
+        
+        /* Modal Transition */
+        .modal { transition: opacity 0.3s ease; }
     </style>
 </head>
 <body class="min-h-screen pb-20">
 
     <div id="loginView" class="flex flex-col justify-center items-center min-h-screen p-4">
         <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">SUPER SAVER 🏆</h1>
-        <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 mt-8 hover:scale-105 transition">
+        <p class="text-gray-400 mb-8 text-center">සාමාන්‍ය බැංකුවක් නොවේ, මෙය ඉලක්ක ජයගන්නා තැනක්.</p>
+        <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 hover:scale-105 transition">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
-            Google Login
+            Google හරහා ඇතුල් වන්න
         </button>
+    </div>
+
+    <div id="termsView" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-95 p-4">
+        <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-yellow-500 shadow-2xl">
+            <h2 class="text-xl font-bold text-yellow-400 mb-4 border-b border-gray-700 pb-2">📜 නීති සහ කොන්දේසි (Policy)</h2>
+            <div class="h-64 overflow-y-auto text-sm text-gray-300 mb-4 bg-gray-900 p-3 rounded leading-relaxed border border-gray-700">
+                <p class="mb-3"><strong class="text-white">1. ඉලක්කගත ඉතිරිකිරීම් (Goal Based):</strong> මෙය සාමාන්‍ය බැංකු ගිණුමක් නොවේ. ඔබ මුලින්ම ඉලක්කයක් (Target Amount) සකසා ගත යුතු අතර, එය සම්පූර්ණ වන තෙක් මුදල් එකතු කළ යුතුය.</p>
+                <p class="mb-3"><strong class="text-white">2. පොලී ගෙවීම (Interest):</strong> පොලී ගෙවීම ආරම්භ වන්නේ ඔබේ ගිණුමේ ශේෂය <strong>රු. 10,000</strong> ඉක්මවූ පසුව පමණි. (Monetization Bar එක පිරිය යුතුය).</p>
+                <p class="mb-3"><strong class="text-white">3. මුදල් ආපසු ගැනීම (Withdrawal):</strong> ඔබට මුදල් ආපසු ලබා ගත හැක්කේ ඔබේ Target එක 100% සම්පූර්ණ වූ විට පමණි.</p>
+                <p class="mb-3"><strong class="text-white">4. දිනපතා තැන්පතු:</strong> ඉලක්කය කරා යාමට ඔබ දිනපතා හෝ සතිපතා මුදල් තැන්පත් කිරීමට උනන්දු විය යුතුය.</p>
+                <p class="text-xs text-gray-500 mt-4">* ඉදිරියට යාමෙන් ඔබ මෙම කොන්දේසි වලට එකඟ වේ.</p>
+            </div>
+            <button onclick="acceptTerms()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg transform active:scale-95 transition">මම එකඟයි (I Accept) ✅</button>
+        </div>
+    </div>
+
+    <div id="setupView" class="hidden min-h-screen flex flex-col justify-center items-center p-4 bg-gray-900 z-40 fixed inset-0">
+        <div class="glass p-6 rounded-2xl w-full max-w-md text-center border border-gray-600">
+            <h2 class="text-2xl font-bold mb-2 text-yellow-400">🎯 අලුත් ඉලක්කයක් (New Target)</h2>
+            <p class="text-gray-400 text-sm mb-6">ඔබට ඊළඟට එකතු කරන්න අවශ්‍ය මුළු මුදල කීයද?</p>
+            
+            <input type="number" id="targetAmountInput" placeholder="Ex: 100000" class="w-full p-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-xl font-bold text-center mb-6 focus:border-yellow-500 outline-none">
+            
+            <div class="flex gap-2">
+                <button onclick="cancelSetup()" id="btnCancelSetup" class="hidden flex-1 bg-gray-600 text-white font-bold py-3 rounded-xl">Cancel</button>
+                <button onclick="saveTarget()" class="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold py-3 rounded-xl shadow-lg">Target එක සෙට් කරන්න 🚀</button>
+            </div>
+        </div>
     </div>
 
     <div id="dashboardView" class="hidden p-4 max-w-md mx-auto">
@@ -39,31 +71,20 @@
             <img id="userImg" src="" class="w-12 h-12 rounded-full border-2 border-yellow-500">
         </div>
 
-        <div class="flex justify-between gap-2 mb-4 bg-gray-800 p-2 rounded-xl">
-            <div id="badgeBronze" class="opacity-30 grayscale flex flex-col items-center w-1/3">
-                <span class="text-2xl">🥉</span>
-                <span class="text-[10px] text-gray-400">Bronze (5k)</span>
-            </div>
-            <div id="badgeSilver" class="opacity-30 grayscale flex flex-col items-center w-1/3 border-l border-r border-gray-700">
-                <span class="text-2xl">🥈</span>
-                <span class="text-[10px] text-gray-400">Silver (10k)</span>
-            </div>
-            <div id="badgeGold" class="opacity-30 grayscale flex flex-col items-center w-1/3">
-                <span class="text-2xl">🥇</span>
-                <span class="text-[10px] text-gray-400">Gold (Goal)</span>
-            </div>
-        </div>
-
-        <div class="glass p-6 rounded-3xl mb-6 text-center relative overflow-hidden">
+        <div class="glass p-6 rounded-3xl mb-4 text-center relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-full bg-green-500/5 z-0"></div>
             <p class="text-xs text-green-300 uppercase tracking-widest relative z-10">My Savings Tree</p>
-            
             <div class="my-4 relative z-10 flex justify-center items-center h-32">
                 <div id="treeIcon" class="text-9xl drop-shadow-2xl tree-container">🌱</div>
             </div>
-            
             <h1 class="text-3xl font-bold text-white relative z-10">Rs. <span id="balanceDisplay">0.00</span></h1>
             <p class="text-xs text-gray-400 mt-1 relative z-10">Target: Rs. <span id="targetDisplay">0</span></p>
+        </div>
+
+        <div class="mb-6">
+            <button id="btnSetTarget" onclick="openTargetSetup()" class="w-full bg-gray-700 text-gray-400 font-bold py-3 rounded-xl shadow-lg flex justify-center items-center gap-2 cursor-not-allowed opacity-50 transition-all duration-300" disabled>
+                <span>🔒</span> Target Locked (Finish current first)
+            </button>
         </div>
 
         <div class="glass p-4 rounded-2xl mb-6">
@@ -72,11 +93,11 @@
                 <span id="targetPercentText">0%</span>
             </div>
             <div class="w-full bg-gray-700 rounded-full h-3 mb-4">
-                <div id="targetBar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                <div id="targetBar" class="bg-blue-500 h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
             </div>
 
             <div class="flex justify-between text-xs text-gray-400 mb-1">
-                <span>Monetization (Unlock Interest)</span>
+                <span>Monetization (Interest > 10k)</span>
                 <span id="moneyPercentText">0%</span>
             </div>
             <div class="w-full bg-gray-700 rounded-full h-3">
@@ -86,7 +107,7 @@
         </div>
 
         <div class="glass p-4 rounded-2xl mb-6">
-            <h3 class="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2">🏆 Weekly Top Savers (% Completed)</h3>
+            <h3 class="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2">🏆 Top Savers (% Completed)</h3>
             <div id="leaderboardList" class="space-y-2">
                 <p class="text-xs text-gray-500">Loading...</p>
             </div>
@@ -95,32 +116,29 @@
         <div class="glass p-4 rounded-2xl border-l-4 border-red-500 relative">
             <h3 class="font-bold text-gray-200 mb-2">Withdraw Money</h3>
             
-            <div id="withdrawLock" class="absolute inset-0 bg-gray-900/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-2xl text-center p-4">
-                <span class="text-3xl mb-2">🔒</span>
+            <div id="withdrawLock" class="absolute inset-0 bg-gray-900/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-r-2xl text-center p-4">
+                <span class="text-2xl mb-1">🔒</span>
                 <h4 class="text-red-400 font-bold text-sm">Target Not Met!</h4>
-                <p class="text-xs text-gray-400">ඔබට මුදල් ගත හැක්කේ ඉලක්කය 100% සම්පූර්ණ වූ විට පමණි.</p>
+                <p class="text-[10px] text-gray-400">Withdrawal unlocks at 100%.</p>
             </div>
 
-            <div class="opacity-50 pointer-events-none">
+            <div id="withdrawForm" class="hidden">
                 <div class="flex gap-2 mb-3">
-                    <label class="flex-1 bg-green-900 p-2 rounded text-center text-xs">Cash</label>
-                    <label class="flex-1 bg-blue-900 p-2 rounded text-center text-xs">Bank</label>
+                    <label class="flex-1 cursor-pointer"><input type="radio" name="wType" value="cash" checked class="peer hidden"><div class="bg-gray-700 peer-checked:bg-green-600 p-2 rounded text-center text-xs text-gray-300 peer-checked:text-white transition">Cash 💵</div></label>
+                    <label class="flex-1 cursor-pointer"><input type="radio" name="wType" value="bank" class="peer hidden" onchange="toggleBank()"><div class="bg-gray-700 peer-checked:bg-blue-600 p-2 rounded text-center text-xs text-gray-300 peer-checked:text-white transition">Bank 🏦</div></label>
                 </div>
-                <input type="number" placeholder="Amount" class="w-full p-2 bg-gray-900 rounded mb-2">
-                <button class="w-full bg-gray-600 text-white font-bold py-2 rounded">Request</button>
+                <input type="number" id="wAmount" placeholder="Amount (Rs)" class="w-full p-2 bg-gray-900 border border-gray-600 rounded mb-2 text-white text-sm">
+                <div id="bankF" class="hidden space-y-2 mb-2">
+                    <input type="text" id="bName" placeholder="Bank Name" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-xs text-white">
+                    <input type="text" id="bAcc" placeholder="Account No" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-xs text-white">
+                </div>
+                <button onclick="requestWithdraw()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded shadow text-sm">Request Withdraw 🔓</button>
             </div>
             
-            <div id="withdrawForm" class="hidden mt-2">
-                <div class="flex gap-2 mb-3">
-                    <label class="flex-1 cursor-pointer"><input type="radio" name="wType" value="cash" checked class="peer hidden"><div class="bg-gray-700 peer-checked:bg-green-600 p-2 rounded text-center text-xs">Cash 💵</div></label>
-                    <label class="flex-1 cursor-pointer"><input type="radio" name="wType" value="bank" class="peer hidden" onchange="document.getElementById('bankF').classList.toggle('hidden')"><div class="bg-gray-700 peer-checked:bg-blue-600 p-2 rounded text-center text-xs">Bank 🏦</div></label>
-                </div>
-                <input type="number" id="wAmount" placeholder="Amount" class="w-full p-2 bg-gray-900 border border-gray-600 rounded mb-2 text-white">
-                <div id="bankF" class="hidden space-y-2 mb-2">
-                    <input type="text" id="bName" placeholder="Bank Name" class="w-full p-2 bg-gray-900 border rounded text-xs">
-                    <input type="text" id="bAcc" placeholder="Acc No" class="w-full p-2 bg-gray-900 border rounded text-xs">
-                </div>
-                <button onclick="requestWithdraw()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded shadow">Request Withdraw 🔓</button>
+            <div id="dummyForm" class="opacity-30 pointer-events-none">
+                <div class="flex gap-2 mb-2"><div class="flex-1 bg-gray-700 h-8 rounded"></div><div class="flex-1 bg-gray-700 h-8 rounded"></div></div>
+                <div class="bg-gray-700 h-10 rounded w-full mb-2"></div>
+                <div class="bg-gray-600 h-10 rounded w-full"></div>
             </div>
         </div>
         
@@ -149,6 +167,15 @@
         
         let currentUser = null;
 
+        // Navigation Helper
+        function showView(viewId) {
+            ['loginView', 'termsView', 'setupView', 'dashboardView'].forEach(id => {
+                const el = document.getElementById(id);
+                if(id === viewId) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+        }
+
         window.googleLogin = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
         window.logout = () => signOut(auth).then(() => location.reload());
 
@@ -159,63 +186,92 @@
                 const snap = await getDoc(userRef);
 
                 if (!snap.exists()) {
+                    // New User -> Terms
                     await setDoc(userRef, {
                         name: user.displayName, email: user.email, photo: user.photoURL,
-                        balance: 0, target: 100000, streak: 0, lastDepositDate: null // Defaults
+                        balance: 0, target: 0, streak: 0, termsAccepted: false
                     });
-                    location.reload();
+                    showView('termsView');
                 } else {
-                    loadDashboard(snap.data());
+                    const data = snap.data();
+                    if (!data.termsAccepted) {
+                        showView('termsView');
+                    } else if (!data.target || data.target === 0) {
+                        // User accepted terms but hasn't set target
+                        document.getElementById('btnCancelSetup').classList.add('hidden'); // Cannot cancel initial setup
+                        showView('setupView');
+                    } else {
+                        loadDashboard(data);
+                    }
                 }
             } else {
-                document.getElementById('loginView').style.display = 'flex';
-                document.getElementById('dashboardView').style.display = 'none';
+                showView('loginView');
             }
         });
 
-        function loadDashboard(userData) {
-            document.getElementById('loginView').style.display = 'none';
-            document.getElementById('dashboardView').style.display = 'block';
+        // 1. TERMS LOGIC
+        window.acceptTerms = async () => {
+            await setDoc(doc(db, "users", currentUser.uid), { termsAccepted: true }, { merge: true });
+            // After accepting, go to setup
+            document.getElementById('btnCancelSetup').classList.add('hidden');
+            showView('setupView');
+        };
 
+        // 2. TARGET LOGIC
+        window.openTargetSetup = () => {
+            // Can cancel if coming from dashboard
+            document.getElementById('btnCancelSetup').classList.remove('hidden'); 
+            showView('setupView');
+        };
+
+        window.cancelSetup = () => {
+            showView('dashboardView');
+        };
+
+        window.saveTarget = async () => {
+            const amount = parseFloat(document.getElementById('targetAmountInput').value);
+            if(!amount || amount <= 0) return alert("Please enter a valid target amount.");
+            
+            await setDoc(doc(db, "users", currentUser.uid), { target: amount }, { merge: true });
+            location.reload(); // Reload to refresh dashboard logic
+        };
+
+        // 3. DASHBOARD LOGIC
+        function loadDashboard(userData) {
+            showView('dashboardView');
             document.getElementById('userName').innerText = userData.name.split(" ")[0];
             document.getElementById('userImg').src = userData.photo;
 
-            // Live Updates
             onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
                 const d = doc.data();
                 const bal = d.balance || 0;
-                const target = d.target || 1;
+                const target = d.target || 1; // Avoid divide by zero
                 const streak = d.streak || 0;
 
-                // 1. STREAK
-                document.getElementById('streakCount').innerText = `${streak} Days Streak!`;
-                if(streak >= 5) document.getElementById('streakCount').innerText += " 🔥 On Fire!";
+                // STREAK
+                const streakEl = document.getElementById('streakCount');
+                streakEl.innerText = `${streak} Days Streak!`;
+                if(streak > 3) streakEl.innerText += " 🔥";
 
-                // 2. BADGES
-                updateBadge('badgeBronze', bal >= 5000);
-                updateBadge('badgeSilver', bal >= 10000);
-                updateBadge('badgeGold', bal >= target);
-
-                // 3. TREE ANIMATION (Based on %)
+                // TREE
                 const pct = (bal / target) * 100;
-                let treeIcon = "🌱"; // Seed
-                if (pct > 10) treeIcon = "🌿"; // Sprout
-                if (pct > 40) treeIcon = "🌳"; // Tree
-                if (pct > 80) treeIcon = "🌲"; // Big Forest Tree
-                if (pct >= 100) treeIcon = "🎄"; // Decorated (Goal Met)
+                let treeIcon = "🌱";
+                if (pct > 10) treeIcon = "🌿";
+                if (pct > 40) treeIcon = "🌳";
+                if (pct > 80) treeIcon = "🌲";
+                if (pct >= 100) treeIcon = "🎄";
                 
                 const treeEl = document.getElementById('treeIcon');
                 treeEl.innerText = treeIcon;
-                // Add heartbeat animation if progress is good
                 if(pct > 0) treeEl.classList.add('grow-anim');
 
-                // 4. BARS
+                // BALANCE & TEXT
                 document.getElementById('balanceDisplay').innerText = bal.toFixed(2);
                 document.getElementById('targetDisplay').innerText = target;
                 document.getElementById('targetBar').style.width = `${Math.min(pct, 100)}%`;
                 document.getElementById('targetPercentText').innerText = `${pct.toFixed(1)}%`;
 
-                // Monetization
+                // MONETIZATION (10k)
                 const moneyPct = Math.min((bal / 10000) * 100, 100);
                 document.getElementById('moneyBar').style.width = `${moneyPct}%`;
                 if(bal >= 10000) {
@@ -224,43 +280,48 @@
                     document.getElementById('interestStatus').classList.replace('text-gray-500', 'text-green-400');
                 }
 
-                // 5. WITHDRAWAL LOCK LOGIC
+                // --- BUTTON LOCK LOGIC ---
+                const btnSetTarget = document.getElementById('btnSetTarget');
                 if (bal >= target && bal > 0) {
-                    document.getElementById('withdrawLock').classList.add('hidden'); // Unlock
-                    document.getElementById('withdrawForm').classList.remove('hidden');
+                    // Unlocked
+                    btnSetTarget.disabled = false;
+                    btnSetTarget.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-700', 'text-gray-400');
+                    btnSetTarget.classList.add('bg-yellow-500', 'hover:bg-yellow-400', 'text-black', 'cursor-pointer');
+                    btnSetTarget.innerHTML = `<span>🎯</span> Set New Target (Completed!)`;
                 } else {
-                    document.getElementById('withdrawLock').classList.remove('hidden'); // Lock
+                    // Locked
+                    btnSetTarget.disabled = true;
+                    btnSetTarget.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-700', 'text-gray-400');
+                    btnSetTarget.classList.remove('bg-yellow-500', 'hover:bg-yellow-400', 'text-black', 'cursor-pointer');
+                    btnSetTarget.innerHTML = `<span>🔒</span> Target Locked (Finish current first)`;
+                }
+
+                // --- WITHDRAWAL LOCK LOGIC ---
+                if (bal >= target && bal > 0) {
+                    document.getElementById('withdrawLock').classList.add('hidden');
+                    document.getElementById('withdrawForm').classList.remove('hidden');
+                    document.getElementById('dummyForm').classList.add('hidden');
+                } else {
+                    document.getElementById('withdrawLock').classList.remove('hidden');
                     document.getElementById('withdrawForm').classList.add('hidden');
+                    document.getElementById('dummyForm').classList.remove('hidden');
                 }
             });
 
             loadLeaderboard();
         }
 
-        function updateBadge(id, isActive) {
-            const el = document.getElementById(id);
-            if(isActive) {
-                el.classList.remove('opacity-30', 'grayscale');
-                el.classList.add('scale-110', 'transition');
-            } else {
-                el.classList.add('opacity-30', 'grayscale');
-            }
-        }
-
-        // Leaderboard based on Percentage
         async function loadLeaderboard() {
-            const q = query(collection(db, "users")); // Fetch all to calc % client side for prototype
+            const q = query(collection(db, "users")); 
             const snap = await getDocs(q);
             let users = [];
             snap.forEach(d => {
                 const u = d.data();
-                if(u.balance > 0) {
+                if(u.balance > 0 && u.target > 0) {
                     const pct = (u.balance / u.target) * 100;
                     users.push({ name: u.name, pct: pct });
                 }
             });
-            
-            // Sort by Percentage Descending
             users.sort((a, b) => b.pct - a.pct);
             
             const list = document.getElementById('leaderboardList');
@@ -279,14 +340,23 @@
             });
         }
 
+        window.toggleBank = () => {
+            const isBank = document.querySelector('input[name="wType"]:checked').value === 'bank';
+            const el = document.getElementById('bankF');
+            if(isBank) el.classList.remove('hidden'); else el.classList.add('hidden');
+        };
+
         window.requestWithdraw = async () => {
             const amount = parseFloat(document.getElementById('wAmount').value);
-            if(!amount) return alert("Amount required");
+            if(!amount) return alert("Enter amount");
             
             const method = document.querySelector('input[name="wType"]:checked').value;
             let details = "Cash";
             if(method === 'bank') {
-                details = `${document.getElementById('bName').value} - ${document.getElementById('bAcc').value}`;
+                const bName = document.getElementById('bName').value;
+                const bAcc = document.getElementById('bAcc').value;
+                if(!bName || !bAcc) return alert("Bank details required");
+                details = `${bName} - ${bAcc}`;
             }
 
             await addDoc(collection(db, "transactions"), {
