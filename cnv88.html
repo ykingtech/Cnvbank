@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNV Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { font-family: sans-serif; }</style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen p-4">
+
+    <div class="max-w-2xl mx-auto">
+        <header class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-yellow-400">👑 CNV ADMIN</h1>
+            </div>
+            <button onclick="location.reload()" class="bg-slate-700 px-3 py-1 rounded hover:bg-slate-600 text-sm">Refresh</button>
+        </header>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
+                <h3 class="text-gray-400 text-xs uppercase">Pending Requests</h3>
+                <p class="text-3xl font-bold text-white" id="pendingCount">0</p>
+            </div>
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
+                <h3 class="text-gray-400 text-xs uppercase">Server</h3>
+                <p class="text-green-400 font-bold">Online 🟢</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-xl overflow-hidden shadow-2xl">
+            <div class="bg-slate-700 p-3 font-bold text-gray-200 text-sm">
+                පොරොත්තු ඉල්ලීම් (Pending)
+            </div>
+            <div id="adminList" class="divide-y divide-slate-700">
+                <p class="p-6 text-center text-gray-500">දත්ත ලෝඩ් වෙමින් පවතී...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // --- කලින් පාවිච්චි කරපු Firebase CONFIG එකම මෙතනටත් දාන්න ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
+            authDomain: "cnvbankbyuandy.firebaseapp.com",
+            projectId: "cnvbankbyuandy",
+            storageBucket: "cnvbankbyuandy.firebasestorage.app",
+            messagingSenderId: "654524804107",
+            appId: "1:654524804107:web:839811f4eb33b914786b0e",
+            measurementId: "G-PWWVKS8EEM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Load Pending Data
+        const q = query(collection(db, "transactions"), where("status", "==", "pending"));
+        
+        onSnapshot(q, (snapshot) => {
+            const list = document.getElementById('adminList');
+            document.getElementById('pendingCount').innerText = snapshot.size;
+            list.innerHTML = "";
+            
+            if(snapshot.empty) {
+                list.innerHTML = "<p class='p-6 text-center text-gray-500'>කිසිදු ඉල්ලීමක් නැත (No pending requests) ✨</p>";
+                return;
+            }
+
+            snapshot.forEach((docSnap) => {
+                const t = docSnap.data();
+                const isDeposit = t.type === 'deposit';
+                
+                // Show Bank details if it's a withdraw request
+                const bankDetails = (!isDeposit && t.userBank) 
+                    ? `<div class="mt-2 bg-slate-900 p-2 rounded text-xs text-yellow-300 border border-slate-600">
+                        🏦 ${t.userBank}
+                       </div>` 
+                    : '';
+
+                const item = document.createElement('div');
+                item.className = "p-4 flex flex-col gap-3 hover:bg-slate-750 transition";
+                
+                item.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${isDeposit ? '📥' : '📤'}</span>
+                            <div>
+                                <h4 class="font-bold text-white">${t.userName}</h4>
+                                <span class="text-[10px] uppercase px-2 py-0.5 rounded ${isDeposit ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}">
+                                    ${t.type}
+                                </span>
+                            </div>
+                        </div>
+                        <span class="text-xl font-bold text-white">Rs. ${t.amount}</span>
+                    </div>
+                    
+                    ${bankDetails}
+                    
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-xs text-gray-500">${new Date(t.date.seconds * 1000).toLocaleString()}</p>
+                        <button onclick="approveTx('${docSnap.id}', '${t.userId}', ${t.amount}, '${t.type}')" 
+                            class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-1 px-4 rounded shadow-lg">
+                            ACCEPT ✅
+                        </button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        });
+
+        window.approveTx = async (txId, userId, amount, type) => {
+            if(!confirm(`Rs. ${amount} ක ${type} ගනුදෙනුව ස්ථිර කරනවද?`)) return;
+            
+            const adjustment = type === 'deposit' ? amount : -amount;
+            
+            try {
+                await updateDoc(doc(db, "transactions", txId), { status: "success" });
+                await updateDoc(doc(db, "users", userId), { balance: increment(adjustment) });
+            } catch(e) {
+                console.error(e);
+                alert("Error: " + e.message);
+            }
+        };
+    </script>
+</body>
+</html>
