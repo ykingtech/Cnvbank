@@ -19,7 +19,7 @@
 
         <div class="grid grid-cols-2 gap-4 mb-6">
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
-                <h3 class="text-gray-400 text-xs uppercase">Pending Requests</h3>
+                <h3 class="text-gray-400 text-xs uppercase">Pending</h3>
                 <p class="text-3xl font-bold text-white" id="pendingCount">0</p>
             </div>
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
@@ -42,7 +42,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // --- කලින් පාවිච්චි කරපු Firebase CONFIG එකම මෙතනටත් දාන්න ---
+        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
             authDomain: "cnvbankbyuandy.firebaseapp.com",
@@ -65,7 +65,7 @@
             list.innerHTML = "";
             
             if(snapshot.empty) {
-                list.innerHTML = "<p class='p-6 text-center text-gray-500'>කිසිදු ඉල්ලීමක් නැත (No pending requests) ✨</p>";
+                list.innerHTML = "<p class='p-6 text-center text-gray-500'>කිසිදු ඉල්ලීමක් නැත ✨</p>";
                 return;
             }
 
@@ -73,12 +73,23 @@
                 const t = docSnap.data();
                 const isDeposit = t.type === 'deposit';
                 
-                // Show Bank details if it's a withdraw request
-                const bankDetails = (!isDeposit && t.userBank) 
-                    ? `<div class="mt-2 bg-slate-900 p-2 rounded text-xs text-yellow-300 border border-slate-600">
-                        🏦 ${t.userBank}
-                       </div>` 
-                    : '';
+                // Details Section
+                let extraDetails = '';
+                
+                if (isDeposit && t.slipImage) {
+                    // Show Slip Image
+                    extraDetails = `
+                        <div class="mt-2">
+                            <p class="text-xs text-gray-400 mb-1">📸 Bank Slip:</p>
+                            <img src="${t.slipImage}" class="w-full max-h-40 object-contain rounded border border-slate-600 bg-black">
+                        </div>`;
+                } else if (!isDeposit && t.userBankDetails) {
+                    // Show User Bank Details
+                    extraDetails = `
+                        <div class="mt-2 bg-slate-900 p-2 rounded text-xs text-yellow-300 border border-slate-600">
+                            🏦 ${t.userBankDetails}
+                        </div>`;
+                }
 
                 const item = document.createElement('div');
                 item.className = "p-4 flex flex-col gap-3 hover:bg-slate-750 transition";
@@ -97,12 +108,12 @@
                         <span class="text-xl font-bold text-white">Rs. ${t.amount}</span>
                     </div>
                     
-                    ${bankDetails}
+                    ${extraDetails}
                     
                     <div class="flex justify-between items-center mt-2">
                         <p class="text-xs text-gray-500">${new Date(t.date.seconds * 1000).toLocaleString()}</p>
                         <button onclick="approveTx('${docSnap.id}', '${t.userId}', ${t.amount}, '${t.type}')" 
-                            class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-1 px-4 rounded shadow-lg">
+                            class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-1 px-4 rounded shadow-lg w-full sm:w-auto mt-2 sm:mt-0">
                             ACCEPT ✅
                         </button>
                     </div>
