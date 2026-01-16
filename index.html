@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CNV Bank - Pro System</title>
+    <title>CNV Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
         body { font-family: 'Noto Sans Sinhala', sans-serif; overflow-x: hidden; }
         #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: linear-gradient(to bottom, #0f172a, #1e3a8a); }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        /* Image Preview Style */
         .image-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; display: none; margin-top: 10px; border: 2px dashed #cbd5e1; }
     </style>
 </head>
@@ -30,10 +28,6 @@
                 <span class="font-bold text-gray-700">Google Login</span>
             </button>
         </div>
-        
-        <button onclick="openAdmin()" class="mt-10 text-white/50 text-sm hover:text-white underline">
-            Go to Admin Panel ➔
-        </button>
     </div>
 
     <div id="setupView" class="hidden min-h-screen flex flex-col justify-center items-center p-4">
@@ -81,22 +75,23 @@
         </div>
 
         <div id="depositBox" class="hidden glass p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-green-500 animate-fade-in">
-            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-center mb-4">
-                <h3 class="text-blue-800 font-bold text-lg">COMMERCIAL BANK</h3>
-                <p class="text-xs text-gray-500">Kurunegala Branch</p>
-                <p class="text-sm font-bold text-gray-700 mt-2">K M H Y S Kariyawasam</p>
+            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 text-center mb-4">
+                <h3 class="text-red-700 font-bold text-xl">PEOPLE'S BANK</h3>
+                <p class="text-xs text-gray-500 font-bold uppercase">Kurunegala Maliyadewa Branch</p>
                 
-                <div class="flex items-center justify-center gap-2 mt-1 bg-white p-2 rounded border border-blue-100">
-                    <span class="text-xl font-bold text-gray-800 tracking-wider">8025211913</span>
-                    <button onclick="navigator.clipboard.writeText('8025211913'); alert('Copied!');" class="text-xs bg-gray-200 p-1 rounded">📋 Copy</button>
+                <div class="my-3 text-left bg-white p-3 rounded border border-yellow-100">
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">Account Name</p>
+                    <p class="text-xs font-bold text-gray-800 leading-tight">MR UVINDU INDUWARA BANDARA THENNAKOON THENNAKOON MUDIYANSELAGE</p>
                 </div>
                 
-                <a href="https://www.combankdigital.com/" target="_blank" class="block w-full bg-blue-600 text-white py-2 rounded-lg font-bold mt-3 text-sm hover:bg-blue-700">
-                    Open ComBank App 🏦
-                </a>
+                <div class="flex items-center justify-center gap-2 mt-1 bg-white p-2 rounded border border-yellow-100 shadow-sm">
+                    <span class="text-lg font-bold text-gray-800 tracking-wider">226-2-001-5-0072312</span>
+                    <button onclick="navigator.clipboard.writeText('226200150072312'); alert('Account Number Copied! ✅');" class="text-xs bg-gray-200 hover:bg-gray-300 p-2 rounded font-bold">📋 Copy</button>
+                </div>
+                
+                <p class="text-[10px] text-red-500 mt-2">*මුදල් යවා ස්ලිප් එක පහතින් එවන්න</p>
             </div>
 
-            <h3 class="font-bold text-gray-800 mb-2">Step 2: Slip එක එවන්න</h3>
             <input type="number" id="depositAmount" placeholder="තැන්පත් කළ මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-center font-bold">
             <button onclick="requestDeposit()" class="w-full bg-green-600 text-white p-3 rounded-xl font-bold shadow-lg">ඉල්ලීම යවන්න</button>
         </div>
@@ -104,7 +99,6 @@
         <div id="withdrawBox" class="hidden glass p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-red-500 animate-fade-in">
             <h3 class="font-bold text-gray-800 mb-2">මුදල් ආපසු ගැනීම</h3>
             <p class="text-xs text-gray-500 mb-3">ඔබේ බැංකු ගිණුමට මුදල් එවනු ලැබේ.</p>
-            
             <input type="number" id="withdrawAmount" placeholder="ගන්නා මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-center font-bold">
             <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white p-3 rounded-xl font-bold shadow-lg">WhatsApp ඉල්ලීම යවන්න</button>
         </div>
@@ -112,27 +106,12 @@
         <button onclick="logout()" class="w-full bg-gray-200 text-gray-700 p-3 rounded-xl font-bold mt-auto">Logout</button>
     </div>
 
-    <div id="adminView" class="hidden min-h-screen bg-slate-900 text-white p-4">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-yellow-400">👑 ADMIN PANEL</h1>
-            <button onclick="location.reload()" class="bg-red-600 px-3 py-1 rounded text-sm font-bold">EXIT</button>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4">
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <h2 class="text-lg font-bold mb-4 border-b border-slate-600 pb-2">Pending Requests</h2>
-                <div id="adminList" class="space-y-3">
-                    <p class="text-slate-500 text-center">Loading...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, where, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
+        // --- ඔබේ CONFIG එක මෙතනට දාන්න ---
         const firebaseConfig = {
             apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
             authDomain: "cnvbankbyuandy.firebaseapp.com",
@@ -152,22 +131,13 @@
         let userData = null;
         const ADMIN_WHATSAPP = "94726284277";
 
-        // --- NAVIGATION ---
-        window.showView = (id) => {
-            ['loginView', 'setupView', 'dashboardView', 'adminView'].forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        };
-
         window.toggleSection = (id) => {
             document.getElementById('depositBox').classList.add('hidden');
             document.getElementById('withdrawBox').classList.add('hidden');
             document.getElementById(id).classList.remove('hidden');
         };
 
-        // --- 1. AUTH FLOW ---
-        window.googleLogin = () => {
-            signInWithPopup(auth, provider).catch(err => alert("Login Error: " + err.message));
-        };
+        window.googleLogin = () => { signInWithPopup(auth, provider).catch(err => alert("Login Error")); };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -176,53 +146,43 @@
                 const userSnap = await getDoc(userRef);
 
                 if (!userSnap.exists()) {
-                    // Create base doc but incomplete
-                    await setDoc(userRef, {
-                        name: user.displayName,
-                        email: user.email,
-                        photo: user.photoURL,
-                        balance: 0,
-                        profileComplete: false
-                    });
-                    showView('setupView'); // Go to setup
+                    await setDoc(userRef, { name: user.displayName, email: user.email, photo: user.photoURL, balance: 0, profileComplete: false });
+                    document.getElementById('loginView').classList.add('hidden');
+                    document.getElementById('setupView').classList.remove('hidden');
                 } else {
-                    const data = userSnap.data();
-                    if (!data.profileComplete) {
-                        showView('setupView'); // Profile incomplete
+                    userData = userSnap.data();
+                    if (!userData.profileComplete) {
+                        document.getElementById('loginView').classList.add('hidden');
+                        document.getElementById('setupView').classList.remove('hidden');
                     } else {
-                        // Profile Complete -> Go to Dashboard
-                        userData = data;
                         loadDashboard();
                     }
                 }
             } else {
-                showView('loginView');
+                document.getElementById('dashboardView').classList.add('hidden');
+                document.getElementById('setupView').classList.add('hidden');
+                document.getElementById('loginView').classList.remove('hidden');
             }
         });
 
-        // --- 2. PROFILE SETUP (Base64 Image) ---
         let nicBase64 = "";
-
         window.previewImage = (input) => {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    const img = document.getElementById('nicPreview');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
+                    document.getElementById('nicPreview').src = e.target.result;
+                    document.getElementById('nicPreview').style.display = 'block';
                     
-                    // Compress for Firestore (Basic Canvas compression)
                     const image = new Image();
                     image.src = e.target.result;
                     image.onload = () => {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        const maxWidth = 600; // Resize to max 600px width
-                        const scaleSize = maxWidth / image.width;
-                        canvas.width = maxWidth;
+                        const scaleSize = 600 / image.width;
+                        canvas.width = 600;
                         canvas.height = image.height * scaleSize;
                         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-                        nicBase64 = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+                        nicBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     };
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -232,33 +192,27 @@
         window.completeProfile = async () => {
             const bankName = document.getElementById('regBankName').value;
             const accNo = document.getElementById('regAccNo').value;
-            const btn = document.getElementById('saveProfileBtn');
+            if(!bankName || !accNo || !nicBase64) return alert("සියලු විස්තර අවශ්‍යයි.");
 
-            if(!bankName || !accNo || !nicBase64) return alert("කරුණාකර සියලු විස්තර සහ NIC ෆොටෝ එක ලබා දෙන්න.");
-
-            btn.innerText = "Saving...";
-            try {
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    bankDetails: `${bankName} - ${accNo}`,
-                    nicImage: nicBase64,
-                    profileComplete: true
-                });
-                alert("ගිණුම සකසා අවසන්! ✅");
-                location.reload();
-            } catch(e) {
-                alert("Error: " + e.message);
-                btn.innerText = "Try Again";
-            }
+            document.getElementById('saveProfileBtn').innerText = "Saving...";
+            await updateDoc(doc(db, "users", currentUser.uid), {
+                bankDetails: `${bankName} - ${accNo}`,
+                nicImage: nicBase64,
+                profileComplete: true
+            });
+            location.reload();
         };
 
-        // --- 3. DASHBOARD LOGIC ---
         function loadDashboard() {
-            showView('dashboardView');
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('setupView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            
             document.getElementById('displayName').innerText = currentUser.displayName.split(" ")[0];
             document.getElementById('userPhoto').src = currentUser.photoURL;
 
             onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
-                userData = doc.data(); // Keep local data sync
+                userData = doc.data();
                 document.getElementById('userBalance').innerText = userData.balance.toFixed(2);
             });
         }
@@ -276,90 +230,37 @@
                 date: new Date()
             });
             alert("තැන්පතු ඉල්ලීම යැව්වා! Admin අනුමත කරනතුරු සිටින්න.");
-            document.getElementById('depositAmount').value = "";
             document.getElementById('depositBox').classList.add('hidden');
+            document.getElementById('depositAmount').value = "";
         };
 
         window.requestWithdraw = async () => {
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
             if (!amount) return alert("මුදල ඇතුළත් කරන්න");
 
-            // Save to DB
             await addDoc(collection(db, "transactions"), {
                 userId: currentUser.uid,
                 userName: currentUser.displayName,
-                userBank: userData.bankDetails, // Include Bank Details in DB Record
+                userBank: userData.bankDetails,
                 type: "withdraw",
                 amount: amount,
                 status: "pending",
                 date: new Date()
             });
 
-            // Format Message for WhatsApp with Bank Details
             const msg = `CNV Bank Withdraw:%0A👤 ${currentUser.displayName}%0A💸 Amount: Rs. ${amount}%0A🏦 To Bank: ${userData.bankDetails}%0A🕒 Request Time: ${new Date().toLocaleTimeString()}`;
-            
             window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${msg}`, '_blank');
             document.getElementById('withdrawBox').classList.add('hidden');
         };
 
         window.logout = () => signOut(auth).then(() => location.reload());
 
-        // --- 4. ADMIN PANEL (No Password) ---
-        window.openAdmin = () => {
-            showView('adminView');
-            loadAdminData();
-        };
-
-        function loadAdminData() {
-            const q = query(collection(db, "transactions"), where("status", "==", "pending"));
-            onSnapshot(q, (snap) => {
-                const list = document.getElementById('adminList');
-                list.innerHTML = "";
-                if(snap.empty) list.innerHTML = "<p class='text-gray-400 text-center'>No Requests.</p>";
-
-                snap.forEach(d => {
-                    const t = d.data();
-                    const isDep = t.type === 'deposit';
-                    
-                    // Show Bank Details if it's a withdraw request
-                    const bankInfo = !isDep && t.userBank ? `<p class="text-xs text-yellow-300 mt-1">🏦 ${t.userBank}</p>` : '';
-                    
-                    list.innerHTML += `
-                        <div class="flex justify-between items-center bg-slate-700 p-3 rounded border-l-4 ${isDep ? 'border-green-500' : 'border-red-500'}">
-                            <div>
-                                <p class="font-bold text-white">${t.userName}</p>
-                                <p class="text-xs text-slate-400 uppercase">${t.type}</p>
-                                ${bankInfo}
-                            </div>
-                            <div class="text-right">
-                                <p class="font-bold text-xl text-white">Rs. ${t.amount}</p>
-                                <button onclick="processTx('${d.id}', '${t.userId}', ${t.amount}, '${t.type}')" class="bg-blue-600 px-3 py-1 rounded text-xs font-bold mt-1">APPROVE</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-        }
-
-        window.processTx = async (txId, userId, amount, type) => {
-            if(!confirm("Approve this transaction?")) return;
-            const adjustment = type === 'deposit' ? amount : -amount;
-
-            try {
-                await updateDoc(doc(db, "transactions", txId), { status: "success" });
-                await updateDoc(doc(db, "users", userId), { balance: increment(adjustment) });
-            } catch(e) { alert(e.message); }
-        };
-
-    </script>
-
-    <script>
+        // Three.js Background
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
-
         const geo = new THREE.BufferGeometry();
         const count = 500;
         const pos = new Float32Array(count * 3);
@@ -369,12 +270,7 @@
         const mesh = new THREE.Points(geo, mat);
         scene.add(mesh);
         camera.position.z = 5;
-
-        function animate() {
-            requestAnimationFrame(animate);
-            mesh.rotation.y += 0.002;
-            renderer.render(scene, camera);
-        }
+        function animate() { requestAnimationFrame(animate); mesh.rotation.y += 0.002; renderer.render(scene, camera); }
         animate();
     </script>
 </body>
