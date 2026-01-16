@@ -3,115 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CNV Bank</title>
+    <title>CNV Super Saver</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans Sinhala', sans-serif; overflow-x: hidden; }
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: linear-gradient(to bottom, #0f172a, #1e3a8a); }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .image-preview { width: 100%; height: 150px; object-fit: contain; border-radius: 8px; display: none; margin-top: 10px; border: 2px dashed #cbd5e1; background: #f8fafc; }
+        body { font-family: 'Noto Sans Sinhala', sans-serif; background: #0f172a; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Tree Animation */
+        .tree-container { transition: all 1s ease-in-out; }
+        @keyframes grow { 0% { transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .grow-anim { animation: grow 2s infinite ease-in-out; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen pb-20">
 
-    <div id="canvas-container"></div>
-
-    <div id="loginView" class="flex-1 flex flex-col justify-center items-center p-4 min-h-screen">
-        <div class="glass p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center border border-white/50">
-            <h1 class="text-3xl font-bold text-blue-900 mb-2">CNV BANK 🏦</h1>
-            <p class="text-gray-500 mb-8">Secure & Smart Banking</p>
-            <button onclick="googleLogin()" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 p-4 rounded-xl shadow-md hover:bg-gray-50 transition transform active:scale-95">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
-                <span class="font-bold text-gray-700">Google Login</span>
-            </button>
-        </div>
-    </div>
-
-    <div id="setupView" class="hidden min-h-screen flex flex-col justify-center items-center p-4">
-        <div class="glass p-6 rounded-2xl shadow-2xl max-w-md w-full border-l-4 border-yellow-500">
-            <h2 class="text-xl font-bold text-gray-800 mb-2">ගිණුම සක්‍රිය කිරීම ⚠️</h2>
-            <label class="block text-sm font-bold text-gray-700 mt-3">බැංකුවේ නම</label>
-            <input type="text" id="regBankName" placeholder="උදා: BOC / Commercial" class="w-full p-2 border rounded bg-gray-50">
-            <label class="block text-sm font-bold text-gray-700 mt-3">ශාඛාව (Branch)</label>
-            <input type="text" id="regBranchName" placeholder="උදා: කුරුණෑගල" class="w-full p-2 border rounded bg-gray-50">
-            <label class="block text-sm font-bold text-gray-700 mt-3">ගිණුම් අංකය</label>
-            <input type="number" id="regAccNo" placeholder="Account Number" class="w-full p-2 border rounded bg-gray-50">
-            <label class="block text-sm font-bold text-gray-700 mt-3">NIC ෆොටෝ එක</label>
-            <input type="file" id="regNicFile" accept="image/*" class="w-full text-sm text-gray-500 mt-1" onchange="processImage(this, 'nicPreview')">
-            <img id="nicPreview" class="image-preview">
-            <button onclick="completeProfile()" id="saveProfileBtn" class="w-full bg-blue-700 text-white p-3 rounded-xl font-bold mt-6 shadow hover:bg-blue-800">තහවුරු කරන්න ✅</button>
-        </div>
-    </div>
-
-    <div id="dashboardView" class="hidden flex-col min-h-screen p-4 max-w-md mx-auto w-full relative z-10 pb-20">
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-800 p-6 rounded-3xl text-white shadow-xl mb-6">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-blue-200 text-xs uppercase tracking-wider">Total Balance</p>
-                    <h1 class="text-4xl font-bold mt-1">Rs. <span id="userBalance">0.00</span></h1>
-                </div>
-                <img id="userPhoto" src="" class="w-12 h-12 rounded-full border-2 border-white/50">
-            </div>
-            <p class="mt-4 text-sm font-medium">Hello, <span id="displayName">User</span> 👋</p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <button onclick="toggleSection('depositBox')" class="bg-white p-5 rounded-2xl shadow-lg hover:shadow-xl transition active:scale-95 text-center">
-                <div class="text-3xl mb-1">📥</div>
-                <div class="font-bold text-gray-700">තැන්පත්</div>
-            </button>
-            <button onclick="toggleSection('withdrawBox')" class="bg-white p-5 rounded-2xl shadow-lg hover:shadow-xl transition active:scale-95 text-center">
-                <div class="text-3xl mb-1">📤</div>
-                <div class="font-bold text-gray-700">ගැනීම්</div>
-            </button>
-        </div>
-
-        <button onclick="toggleSection('historyBox')" class="w-full bg-slate-800 text-white p-3 rounded-xl font-bold shadow-lg mb-4 flex justify-between items-center px-6">
-            <span>📜 ගනුදෙනු ඉතිහාසය</span>
-            <span>➔</span>
+    <div id="loginView" class="flex flex-col justify-center items-center min-h-screen p-4">
+        <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">SUPER SAVER 🏆</h1>
+        <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 mt-8 hover:scale-105 transition">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
+            Google Login
         </button>
+    </div>
 
-        <div id="depositBox" class="hidden glass p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-green-500 animate-fade-in">
-            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 text-center mb-4">
-                <h3 class="text-red-700 font-bold text-xl">PEOPLE'S BANK</h3>
-                <p class="text-xs text-gray-500 font-bold uppercase">Kurunegala Maliyadewa Branch</p>
-                <div class="my-3 text-left bg-white p-3 rounded border border-yellow-100">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">Account Name</p>
-                    <p class="text-xs font-bold text-gray-800 leading-tight">MR UVINDU INDUWARA BANDARA THENNAKOON...</p>
-                </div>
-                <div class="flex items-center justify-center gap-2 mt-1 bg-white p-2 rounded border border-yellow-100 shadow-sm">
-                    <span class="text-lg font-bold text-gray-800 tracking-wider">226-2-001-5-0072312</span>
-                    <button onclick="navigator.clipboard.writeText('226200150072312'); alert('Copied!');" class="text-xs bg-gray-200 hover:bg-gray-300 p-2 rounded font-bold">📋 Copy</button>
+    <div id="dashboardView" class="hidden p-4 max-w-md mx-auto">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h2 class="text-xl font-bold" id="userName">User</h2>
+                <div class="flex items-center gap-1 bg-orange-900/50 px-2 py-1 rounded-lg border border-orange-500/30 mt-1">
+                    <span class="text-lg">🔥</span>
+                    <span id="streakCount" class="text-orange-400 font-bold text-sm">0 Days Streak!</span>
                 </div>
             </div>
-            <input type="number" id="depositAmount" placeholder="තැන්පත් කළ මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-center font-bold">
-            <label class="block text-sm font-bold text-gray-600 mb-1">Slip එකේ ෆොටෝ එකක් දාන්න 👇</label>
-            <input type="file" id="depositSlipFile" accept="image/*" class="w-full text-sm text-gray-500 mb-2" onchange="processImage(this, 'slipPreview')">
-            <img id="slipPreview" class="image-preview mb-3">
-            <button onclick="requestDeposit()" id="depositBtn" class="w-full bg-green-600 text-white p-3 rounded-xl font-bold shadow-lg">ඉල්ලීම යවන්න</button>
+            <img id="userImg" src="" class="w-12 h-12 rounded-full border-2 border-yellow-500">
         </div>
 
-        <div id="withdrawBox" class="hidden glass p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-red-500 animate-fade-in">
-            <h3 class="font-bold text-gray-800 mb-2">මුදල් ආපසු ගැනීම</h3>
-            <input type="number" id="withdrawAmount" placeholder="ගන්නා මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-center font-bold">
-            <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white p-3 rounded-xl font-bold shadow-lg">WhatsApp ඉල්ලීම යවන්න</button>
-        </div>
-
-        <div id="historyBox" class="hidden glass p-4 rounded-2xl shadow-lg mb-4">
-            <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">මෑත කාලීන ගනුදෙනු</h3>
-            <div id="historyList" class="space-y-3">
-                <p class="text-center text-gray-400 text-sm">පැරණි දත්ත නැත.</p>
+        <div class="flex justify-between gap-2 mb-4 bg-gray-800 p-2 rounded-xl">
+            <div id="badgeBronze" class="opacity-30 grayscale flex flex-col items-center w-1/3">
+                <span class="text-2xl">🥉</span>
+                <span class="text-[10px] text-gray-400">Bronze (5k)</span>
+            </div>
+            <div id="badgeSilver" class="opacity-30 grayscale flex flex-col items-center w-1/3 border-l border-r border-gray-700">
+                <span class="text-2xl">🥈</span>
+                <span class="text-[10px] text-gray-400">Silver (10k)</span>
+            </div>
+            <div id="badgeGold" class="opacity-30 grayscale flex flex-col items-center w-1/3">
+                <span class="text-2xl">🥇</span>
+                <span class="text-[10px] text-gray-400">Gold (Goal)</span>
             </div>
         </div>
 
-        <button onclick="logout()" class="w-full bg-gray-200 text-gray-700 p-3 rounded-xl font-bold mt-auto">Logout</button>
+        <div class="glass p-6 rounded-3xl mb-6 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full bg-green-500/5 z-0"></div>
+            <p class="text-xs text-green-300 uppercase tracking-widest relative z-10">My Savings Tree</p>
+            
+            <div class="my-4 relative z-10 flex justify-center items-center h-32">
+                <div id="treeIcon" class="text-9xl drop-shadow-2xl tree-container">🌱</div>
+            </div>
+            
+            <h1 class="text-3xl font-bold text-white relative z-10">Rs. <span id="balanceDisplay">0.00</span></h1>
+            <p class="text-xs text-gray-400 mt-1 relative z-10">Target: Rs. <span id="targetDisplay">0</span></p>
+        </div>
+
+        <div class="glass p-4 rounded-2xl mb-6">
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Target Progress</span>
+                <span id="targetPercentText">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-3 mb-4">
+                <div id="targetBar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Monetization (Unlock Interest)</span>
+                <span id="moneyPercentText">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-3">
+                <div id="moneyBar" class="bg-yellow-600 h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+            <p id="interestStatus" class="text-[10px] text-right mt-1 text-gray-500">Reach 10k to unlock interest 🔒</p>
+        </div>
+
+        <div class="glass p-4 rounded-2xl mb-6">
+            <h3 class="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2">🏆 Weekly Top Savers (% Completed)</h3>
+            <div id="leaderboardList" class="space-y-2">
+                <p class="text-xs text-gray-500">Loading...</p>
+            </div>
+        </div>
+
+        <div class="glass p-4 rounded-2xl border-l-4 border-red-500 relative">
+            <h3 class="font-bold text-gray-200 mb-2">Withdraw Money</h3>
+            
+            <div id="withdrawLock" class="absolute inset-0 bg-gray-900/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-2xl text-center p-4">
+                <span class="text-3xl mb-2">🔒</span>
+                <h4 class="text-red-400 font-bold text-sm">Target Not Met!</h4>
+                <p class="text-xs text-gray-400">ඔබට මුදල් ගත හැක්කේ ඉලක්කය 100% සම්පූර්ණ වූ විට පමණි.</p>
+            </div>
+
+            <div class="opacity-50 pointer-events-none">
+                <div class="flex gap-2 mb-3">
+                    <label class="flex-1 bg-green-900 p-2 rounded text-center text-xs">Cash</label>
+                    <label class="flex-1 bg-blue-900 p-2 rounded text-center text-xs">Bank</label>
+                </div>
+                <input type="number" placeholder="Amount" class="w-full p-2 bg-gray-900 rounded mb-2">
+                <button class="w-full bg-gray-600 text-white font-bold py-2 rounded">Request</button>
+            </div>
+            
+            <div id="withdrawForm" class="hidden mt-2">
+                <div class="flex gap-2 mb-3">
+                    <label class="flex-1 cursor-pointer"><input type="radio" name="wType" value="cash" checked class="peer hidden"><div class="bg-gray-700 peer-checked:bg-green-600 p-2 rounded text-center text-xs">Cash 💵</div></label>
+                    <label class="flex-1 cursor-pointer"><input type="radio" name="wType" value="bank" class="peer hidden" onchange="document.getElementById('bankF').classList.toggle('hidden')"><div class="bg-gray-700 peer-checked:bg-blue-600 p-2 rounded text-center text-xs">Bank 🏦</div></label>
+                </div>
+                <input type="number" id="wAmount" placeholder="Amount" class="w-full p-2 bg-gray-900 border border-gray-600 rounded mb-2 text-white">
+                <div id="bankF" class="hidden space-y-2 mb-2">
+                    <input type="text" id="bName" placeholder="Bank Name" class="w-full p-2 bg-gray-900 border rounded text-xs">
+                    <input type="text" id="bAcc" placeholder="Acc No" class="w-full p-2 bg-gray-900 border rounded text-xs">
+                </div>
+                <button onclick="requestWithdraw()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded shadow">Request Withdraw 🔓</button>
+            </div>
+        </div>
+        
+        <button onclick="logout()" class="w-full mt-8 text-gray-500 text-sm mb-10">Logout</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, where, updateDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -128,138 +146,156 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
-        const ADMIN_WHATSAPP = "94726284277";
-        let currentUser = null, userData = null;
+        
+        let currentUser = null;
 
-        window.toggleSection = (id) => {
-            ['depositBox', 'withdrawBox', 'historyBox'].forEach(box => document.getElementById(box).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        };
-
-        window.googleLogin = () => signInWithPopup(auth, provider).catch(err => alert("Login Error"));
+        window.googleLogin = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
+        window.logout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
+                const snap = await getDoc(userRef);
 
-                if (!userSnap.exists()) {
-                    await setDoc(userRef, { name: user.displayName, email: user.email, photo: user.photoURL, balance: 0, profileComplete: false });
-                    document.getElementById('loginView').classList.add('hidden');
-                    document.getElementById('setupView').classList.remove('hidden');
+                if (!snap.exists()) {
+                    await setDoc(userRef, {
+                        name: user.displayName, email: user.email, photo: user.photoURL,
+                        balance: 0, target: 100000, streak: 0, lastDepositDate: null // Defaults
+                    });
+                    location.reload();
                 } else {
-                    userData = userSnap.data();
-                    if (!userData.profileComplete) {
-                        document.getElementById('loginView').classList.add('hidden');
-                        document.getElementById('setupView').classList.remove('hidden');
-                    } else {
-                        loadDashboard();
-                    }
+                    loadDashboard(snap.data());
                 }
             } else {
-                document.getElementById('dashboardView').classList.add('hidden');
-                document.getElementById('loginView').classList.remove('hidden');
+                document.getElementById('loginView').style.display = 'flex';
+                document.getElementById('dashboardView').style.display = 'none';
             }
         });
 
-        let tempImages = { nicPreview: "", slipPreview: "" };
-        window.processImage = (input, previewId) => {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById(previewId).src = e.target.result;
-                    document.getElementById(previewId).style.display = 'block';
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const scale = 600 / img.width;
-                        canvas.width = 600; canvas.height = img.height * scale;
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        tempImages[previewId] = canvas.toDataURL('image/jpeg', 0.7);
-                    };
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        };
+        function loadDashboard(userData) {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'block';
 
-        window.completeProfile = async () => {
-            const bName = document.getElementById('regBankName').value, branch = document.getElementById('regBranchName').value, acc = document.getElementById('regAccNo').value;
-            if(!bName || !branch || !acc || !tempImages['nicPreview']) return alert("සියලු විස්තර අවශ්‍යයි.");
-            document.getElementById('saveProfileBtn').innerText = "Saving...";
-            await updateDoc(doc(db, "users", currentUser.uid), { bankName: bName, bankBranch: branch, bankAcc: acc, nicImage: tempImages['nicPreview'], profileComplete: true });
-            location.reload();
-        };
+            document.getElementById('userName').innerText = userData.name.split(" ")[0];
+            document.getElementById('userImg').src = userData.photo;
 
-        function loadDashboard() {
-            document.getElementById('loginView').classList.add('hidden');
-            document.getElementById('setupView').classList.add('hidden');
-            document.getElementById('dashboardView').classList.remove('hidden');
-            document.getElementById('displayName').innerText = currentUser.displayName.split(" ")[0];
-            document.getElementById('userPhoto').src = currentUser.photoURL;
-            onSnapshot(doc(db, "users", currentUser.uid), (doc) => document.getElementById('userBalance').innerText = doc.data().balance.toFixed(2));
-            loadHistory();
+            // Live Updates
+            onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
+                const d = doc.data();
+                const bal = d.balance || 0;
+                const target = d.target || 1;
+                const streak = d.streak || 0;
+
+                // 1. STREAK
+                document.getElementById('streakCount').innerText = `${streak} Days Streak!`;
+                if(streak >= 5) document.getElementById('streakCount').innerText += " 🔥 On Fire!";
+
+                // 2. BADGES
+                updateBadge('badgeBronze', bal >= 5000);
+                updateBadge('badgeSilver', bal >= 10000);
+                updateBadge('badgeGold', bal >= target);
+
+                // 3. TREE ANIMATION (Based on %)
+                const pct = (bal / target) * 100;
+                let treeIcon = "🌱"; // Seed
+                if (pct > 10) treeIcon = "🌿"; // Sprout
+                if (pct > 40) treeIcon = "🌳"; // Tree
+                if (pct > 80) treeIcon = "🌲"; // Big Forest Tree
+                if (pct >= 100) treeIcon = "🎄"; // Decorated (Goal Met)
+                
+                const treeEl = document.getElementById('treeIcon');
+                treeEl.innerText = treeIcon;
+                // Add heartbeat animation if progress is good
+                if(pct > 0) treeEl.classList.add('grow-anim');
+
+                // 4. BARS
+                document.getElementById('balanceDisplay').innerText = bal.toFixed(2);
+                document.getElementById('targetDisplay').innerText = target;
+                document.getElementById('targetBar').style.width = `${Math.min(pct, 100)}%`;
+                document.getElementById('targetPercentText').innerText = `${pct.toFixed(1)}%`;
+
+                // Monetization
+                const moneyPct = Math.min((bal / 10000) * 100, 100);
+                document.getElementById('moneyBar').style.width = `${moneyPct}%`;
+                if(bal >= 10000) {
+                    document.getElementById('moneyBar').classList.add('bg-green-500');
+                    document.getElementById('interestStatus').innerText = "Interest Active ✅";
+                    document.getElementById('interestStatus').classList.replace('text-gray-500', 'text-green-400');
+                }
+
+                // 5. WITHDRAWAL LOCK LOGIC
+                if (bal >= target && bal > 0) {
+                    document.getElementById('withdrawLock').classList.add('hidden'); // Unlock
+                    document.getElementById('withdrawForm').classList.remove('hidden');
+                } else {
+                    document.getElementById('withdrawLock').classList.remove('hidden'); // Lock
+                    document.getElementById('withdrawForm').classList.add('hidden');
+                }
+            });
+
+            loadLeaderboard();
         }
 
-        function loadHistory() {
-            const q = query(collection(db, "transactions"), where("userId", "==", currentUser.uid), orderBy("date", "desc"), limit(10));
-            onSnapshot(q, (snapshot) => {
-                const list = document.getElementById('historyList');
-                list.innerHTML = "";
-                if(snapshot.empty) { list.innerHTML = "<p class='text-center text-gray-400'>No records.</p>"; return; }
-                snapshot.forEach(doc => {
-                    const t = doc.data();
-                    const isDep = t.type === 'deposit';
-                    const statusColor = t.status === 'success' ? 'text-green-500' : 'text-yellow-500';
-                    const icon = t.status === 'success' ? '✅' : '⏳';
-                    
-                    list.innerHTML += `
-                        <div class="flex justify-between items-center p-3 rounded bg-white border border-gray-100 shadow-sm">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full ${isDep?'bg-green-100 text-green-600':'bg-red-100 text-red-600'} flex items-center justify-center font-bold text-xs">${isDep?'IN':'OUT'}</div>
-                                <div>
-                                    <p class="font-bold text-gray-700 text-sm">${isDep ? 'Deposit' : 'Withdraw'}</p>
-                                    <p class="text-[10px] text-gray-400">${new Date(t.date.seconds*1000).toLocaleDateString()}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-bold text-gray-800">Rs.${t.amount}</p>
-                                <p class="text-[10px] ${statusColor} font-bold uppercase">${t.status} ${icon}</p>
-                            </div>
+        function updateBadge(id, isActive) {
+            const el = document.getElementById(id);
+            if(isActive) {
+                el.classList.remove('opacity-30', 'grayscale');
+                el.classList.add('scale-110', 'transition');
+            } else {
+                el.classList.add('opacity-30', 'grayscale');
+            }
+        }
+
+        // Leaderboard based on Percentage
+        async function loadLeaderboard() {
+            const q = query(collection(db, "users")); // Fetch all to calc % client side for prototype
+            const snap = await getDocs(q);
+            let users = [];
+            snap.forEach(d => {
+                const u = d.data();
+                if(u.balance > 0) {
+                    const pct = (u.balance / u.target) * 100;
+                    users.push({ name: u.name, pct: pct });
+                }
+            });
+            
+            // Sort by Percentage Descending
+            users.sort((a, b) => b.pct - a.pct);
+            
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = "";
+            users.slice(0, 3).forEach((u, index) => {
+                let medal = index === 0 ? '🥇' : (index === 1 ? '🥈' : '🥉');
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-800 p-2 rounded border border-gray-700">
+                        <div class="flex items-center gap-2">
+                            <span>${medal}</span>
+                            <span class="text-sm text-gray-300">${u.name.split(" ")[0]}</span>
                         </div>
-                    `;
-                });
+                        <span class="text-xs font-bold text-blue-400">${u.pct.toFixed(1)}% Done</span>
+                    </div>
+                `;
             });
         }
 
-        window.requestDeposit = async () => {
-            const amount = parseFloat(document.getElementById('depositAmount').value);
-            if (!amount || !tempImages['slipPreview']) return alert("මුදල සහ Slip එක අවශ්‍යයි");
-            document.getElementById('depositBtn').innerText = "Sending...";
-            await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: currentUser.displayName, type: "deposit", amount, status: "pending", slipImage: tempImages['slipPreview'], date: new Date() });
-            alert("Sent!"); location.reload();
-        };
-
         window.requestWithdraw = async () => {
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            if (!amount) return alert("මුදල අවශ්‍යයි");
-            await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: currentUser.displayName, userBankDetails: `${userData.bankName} (${userData.bankBranch}) - ${userData.bankAcc}`, type: "withdraw", amount, status: "pending", date: new Date() });
-            window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=Withdraw Request: Rs. ${amount}`, '_blank');
-            location.reload();
+            const amount = parseFloat(document.getElementById('wAmount').value);
+            if(!amount) return alert("Amount required");
+            
+            const method = document.querySelector('input[name="wType"]:checked').value;
+            let details = "Cash";
+            if(method === 'bank') {
+                details = `${document.getElementById('bName').value} - ${document.getElementById('bAcc').value}`;
+            }
+
+            await addDoc(collection(db, "transactions"), {
+                userId: currentUser.uid, userName: currentUser.displayName,
+                type: "withdraw", amount: amount, method: method, details: details,
+                status: "pending", date: new Date()
+            });
+            alert("Withdrawal Requested! Waiting for Admin.");
         };
-
-        window.logout = () => signOut(auth).then(() => location.reload());
-
-        const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-        const geo = new THREE.BufferGeometry(); const pos = new Float32Array(500 * 3);
-        for(let i=0; i<1500; i++) pos[i] = (Math.random()-0.5) * 10;
-        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-        const mat = new THREE.PointsMaterial({ size: 0.05, color: 0x4f46e5 });
-        const mesh = new THREE.Points(geo, mat); scene.add(mesh); camera.position.z = 5;
-        function animate() { requestAnimationFrame(animate); mesh.rotation.y += 0.002; renderer.render(scene, camera); } animate();
     </script>
 </body>
 </html>
