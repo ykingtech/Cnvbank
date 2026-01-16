@@ -5,64 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CNV Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <style>body { font-family: sans-serif; }</style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-4">
-
+<body class="bg-gray-900 text-white p-4 font-sans">
     <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
-            <div>
-                <h1 class="text-2xl font-bold text-yellow-400">👑 CNV ADMIN</h1>
-            </div>
-            <button onclick="location.reload()" class="bg-slate-700 px-3 py-1 rounded hover:bg-slate-600 text-sm">Refresh</button>
-        </header>
-
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
-                <h3 class="text-gray-400 text-xs uppercase">Pending Requests</h3>
-                <p class="text-3xl font-bold text-white" id="pendingCount">0</p>
-            </div>
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center">
-                <h3 class="text-gray-400 text-xs uppercase">Users</h3>
-                <p class="text-blue-400 font-bold" id="userCount">0</p>
-            </div>
+        <h1 class="text-2xl font-bold text-yellow-400 mb-6">👑 CNV ADMIN (Streak Manager)</h1>
+        
+        <div id="usersList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p>Loading users...</p>
         </div>
+    </div>
 
-        <div class="flex mb-4 gap-2">
-            <button onclick="switchTab('pending')" id="tab-pending" class="flex-1 bg-blue-600 py-2 rounded font-bold">Pending Requests</button>
-            <button onclick="switchTab('users')" id="tab-users" class="flex-1 bg-slate-700 py-2 rounded font-bold">All Users & Reports</button>
+    <div id="moneyModal" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 p-6 rounded-xl w-full max-w-sm border border-yellow-500">
+            <h3 class="text-xl font-bold mb-2">💰 Collect Daily Savings</h3>
+            <p class="text-gray-400 text-sm mb-4">User: <span id="modalUserName" class="text-white font-bold"></span></p>
+            <input type="number" id="addAmount" placeholder="Amount (Rs)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded mb-4 text-white">
+            <button onclick="confirmAddMoney()" class="w-full bg-green-600 hover:bg-green-500 p-3 rounded font-bold">Confirm & Update Streak 🔥</button>
+            <button onclick="closeModal()" class="w-full mt-2 text-gray-500 text-sm">Cancel</button>
         </div>
-
-        <div id="view-pending" class="bg-slate-800 rounded-xl overflow-hidden shadow-2xl">
-            <div id="adminList" class="divide-y divide-slate-700">
-                <p class="p-6 text-center text-gray-500">Loading...</p>
-            </div>
-        </div>
-
-        <div id="view-users" class="hidden bg-slate-800 rounded-xl overflow-hidden shadow-2xl p-4">
-            <div class="bg-slate-900 p-4 rounded-lg border border-slate-600 mb-4">
-                <h3 class="font-bold text-yellow-400 mb-2">📄 Generate PDF Report</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <input type="date" id="startDate" class="bg-slate-800 border border-slate-600 rounded p-2 text-white">
-                    <input type="date" id="endDate" class="bg-slate-800 border border-slate-600 rounded p-2 text-white">
-                    <button onclick="alert('පහත ලිස්ට් එකෙන් User කෙනෙක් තෝරන්න (Report Button එක ඔබන්න)')" class="bg-gray-600 text-gray-400 cursor-not-allowed p-2 rounded text-sm">Select User Below</button>
-                </div>
-                <p class="text-xs text-gray-500 mt-2">*Start Date සහ End Date තෝරා පහළ ඇති User ගේ "PDF Report" බොත්තම ඔබන්න.</p>
-            </div>
-
-            <div id="userList" class="space-y-3">
-                <p class="text-center text-gray-500">Loading Users...</p>
-            </div>
-        </div>
-
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, increment, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, updateDoc, doc, increment, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
+        // Same Config
         const firebaseConfig = {
             apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
             authDomain: "cnvbankbyuandy.firebaseapp.com",
@@ -75,140 +42,96 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
+        let selectedUserId = null;
+        let selectedUserName = null;
 
-        // --- TAB SWITCHING ---
-        window.switchTab = (tab) => {
-            document.getElementById('view-pending').classList.add('hidden');
-            document.getElementById('view-users').classList.add('hidden');
-            document.getElementById('tab-pending').className = "flex-1 bg-slate-700 py-2 rounded font-bold";
-            document.getElementById('tab-users').className = "flex-1 bg-slate-700 py-2 rounded font-bold";
-
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-${tab}`).className = "flex-1 bg-blue-600 py-2 rounded font-bold";
-        };
-
-        // --- 1. LOAD PENDING ---
-        const qPending = query(collection(db, "transactions"), where("status", "==", "pending"));
-        onSnapshot(qPending, (snapshot) => {
-            const list = document.getElementById('adminList');
-            document.getElementById('pendingCount').innerText = snapshot.size;
+        // LOAD USERS
+        onSnapshot(collection(db, "users"), (snap) => {
+            const list = document.getElementById('usersList');
             list.innerHTML = "";
-            if(snapshot.empty) { list.innerHTML = "<p class='p-6 text-center text-gray-500'>No Pending Requests ✨</p>"; return; }
-
-            snapshot.forEach((docSnap) => {
-                const t = docSnap.data();
-                const isDep = t.type === 'deposit';
-                
-                let details = '';
-                if(isDep && t.slipImage) details = `<div class='mt-2'><p class='text-xs text-gray-400'>Slip:</p><img src='${t.slipImage}' class='h-32 rounded border border-slate-600'></div>`;
-                else if(!isDep) details = `<div class='mt-2 text-xs text-yellow-300 bg-slate-900 p-2 rounded'>🏦 ${t.userBankDetails}</div>`;
-
-                list.innerHTML += `
-                    <div class="p-4 hover:bg-slate-750 transition">
-                        <div class="flex justify-between">
-                            <div class="flex gap-3 items-center">
-                                <span class="text-2xl">${isDep?'📥':'📤'}</span>
-                                <div><p class="font-bold">${t.userName}</p><span class="text-[10px] uppercase bg-gray-700 px-2 rounded">${t.type}</span></div>
-                            </div>
-                            <span class="text-xl font-bold">Rs. ${t.amount}</span>
-                        </div>
-                        ${details}
-                        <button onclick="approveTx('${docSnap.id}', '${t.userId}', ${t.amount}, '${t.type}')" class="w-full mt-3 bg-blue-600 hover:bg-blue-500 py-1 rounded font-bold text-sm">ACCEPT ✅</button>
-                    </div>`;
-            });
-        });
-
-        // --- 2. LOAD USERS ---
-        onSnapshot(collection(db, "users"), (snapshot) => {
-            const list = document.getElementById('userList');
-            document.getElementById('userCount').innerText = snapshot.size;
-            list.innerHTML = "";
-
-            snapshot.forEach((docSnap) => {
+            snap.forEach(docSnap => {
                 const u = docSnap.data();
                 const uid = docSnap.id;
-                
                 list.innerHTML += `
-                    <div class="bg-slate-700 p-3 rounded flex justify-between items-center border border-slate-600">
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 flex justify-between items-center">
                         <div>
-                            <p class="font-bold text-white">${u.name}</p>
-                            <p class="text-xs text-gray-400">${u.bankAcc || 'No Acc'}</p>
+                            <p class="font-bold text-lg">${u.name}</p>
+                            <p class="text-xs text-orange-400">🔥 Streak: ${u.streak || 0} Days</p>
+                            <p class="text-xs text-gray-400">Target: Rs.${u.target}</p>
                         </div>
                         <div class="text-right">
-                            <p class="font-bold text-green-400 text-lg">Rs. ${u.balance.toFixed(2)}</p>
-                            <button onclick="generateReport('${uid}', '${u.name}')" class="text-xs bg-yellow-600 hover:bg-yellow-500 text-white px-2 py-1 rounded mt-1">📄 PDF Report</button>
+                            <p class="font-bold text-xl text-green-400">Rs. ${u.balance}</p>
+                            <button onclick="openAddMoney('${uid}', '${u.name}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm mt-2 font-bold">+ Add Money</button>
                         </div>
                     </div>
                 `;
             });
         });
 
-        // --- ACTIONS ---
-        window.approveTx = async (txId, userId, amount, type) => {
-            if(!confirm("Confirm transaction?")) return;
-            try {
-                await updateDoc(doc(db, "transactions", txId), { status: "success" });
-                await updateDoc(doc(db, "users", userId), { balance: increment(type==='deposit'?amount:-amount) });
-            } catch(e) { alert(e.message); }
+        window.openAddMoney = (uid, name) => {
+            selectedUserId = uid;
+            selectedUserName = name;
+            document.getElementById('modalUserName').innerText = name;
+            document.getElementById('moneyModal').classList.remove('hidden');
         };
 
-        // --- PDF GENERATION ---
-        window.generateReport = async (userId, userName) => {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+        window.closeModal = () => {
+            document.getElementById('moneyModal').classList.add('hidden');
+            document.getElementById('addAmount').value = "";
+        };
 
-            if(!startDate || !endDate) return alert("කරුණාකර Start Date සහ End Date තෝරන්න.");
+        window.confirmAddMoney = async () => {
+            const amount = parseFloat(document.getElementById('addAmount').value);
+            if(!amount) return alert("Enter amount");
 
-            // Fetch Transactions (Client side filtering for simplicity without compound indexes)
-            const q = query(collection(db, "transactions"), where("userId", "==", userId));
-            const querySnapshot = await getDocs(q);
+            // --- STREAK CALCULATION LOGIC ---
+            const userRef = doc(db, "users", selectedUserId);
+            const userSnap = await getDoc(userRef);
+            const userData = userSnap.data();
             
-            let transactions = [];
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            end.setHours(23, 59, 59); // Include full end day
+            let newStreak = userData.streak || 0;
+            const lastDate = userData.lastDepositDate ? userData.lastDepositDate.toDate() : null;
+            const today = new Date();
 
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const tDate = new Date(data.date.seconds * 1000); // Firestore Timestamp to JS Date
-                if (tDate >= start && tDate <= end) {
-                    transactions.push({ ...data, dateStr: tDate.toLocaleString() });
+            if (lastDate) {
+                // Reset hours to compare dates only
+                const d1 = new Date(lastDate.setHours(0,0,0,0));
+                const d2 = new Date(today.setHours(0,0,0,0));
+                
+                const diffTime = Math.abs(d2 - d1);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) {
+                    newStreak++; // Consecutive day
+                } else if (diffDays > 1) {
+                    newStreak = 1; // Streak broken, restart
                 }
+                // If diffDays == 0 (same day), keep streak same
+            } else {
+                newStreak = 1; // First deposit
+            }
+            // -------------------------------
+
+            // 1. Update User (Balance + Streak + LastDate)
+            await updateDoc(userRef, {
+                balance: increment(amount),
+                streak: newStreak,
+                lastDepositDate: new Date()
             });
 
-            if(transactions.length === 0) return alert("මෙම කාල පරාසය තුළ ගනුදෙනු නැත.");
-
-            // Create PDF
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            // Header
-            doc.setFontSize(18);
-            doc.text("CNV BANK - Transaction Report", 14, 22);
-            doc.setFontSize(12);
-            doc.text(`User: ${userName}`, 14, 32);
-            doc.text(`Period: ${startDate} to ${endDate}`, 14, 38);
-
-            // Table
-            const tableData = transactions.map(t => [
-                t.dateStr,
-                t.type.toUpperCase(),
-                t.status.toUpperCase(),
-                `Rs. ${t.amount}`
-            ]);
-
-            doc.autoTable({
-                head: [['Date/Time', 'Type', 'Status', 'Amount']],
-                body: tableData,
-                startY: 45,
-                theme: 'grid',
-                headStyles: { fillColor: [22, 160, 133] }
+            // 2. Add Transaction Record
+            await addDoc(collection(db, "transactions"), {
+                userId: selectedUserId,
+                userName: selectedUserName,
+                type: "deposit",
+                amount: amount,
+                date: new Date(),
+                method: "Admin Collected"
             });
 
-            // Footer
-            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, doc.lastAutoTable.finalY + 10);
-
-            doc.save(`CNV_Report_${userName}.pdf`);
+            alert(`Added Rs.${amount} to ${selectedUserName}! Streak: ${newStreak} 🔥`);
+            closeModal();
         };
     </script>
 </body>
