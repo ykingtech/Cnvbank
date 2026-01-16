@@ -11,7 +11,7 @@
         body { font-family: 'Noto Sans Sinhala', sans-serif; overflow-x: hidden; }
         #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: linear-gradient(to bottom, #0f172a, #1e3a8a); }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .image-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; display: none; margin-top: 10px; border: 2px dashed #cbd5e1; }
+        .image-preview { width: 100%; height: 150px; object-fit: contain; border-radius: 8px; display: none; margin-top: 10px; border: 2px dashed #cbd5e1; background: #f8fafc; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -35,14 +35,17 @@
             <h2 class="text-xl font-bold text-gray-800 mb-2">ගිණුම සක්‍රිය කිරීම ⚠️</h2>
             <p class="text-sm text-gray-600 mb-4">ඉදිරියට යාමට ඔබගේ බැංකු විස්තර සහ හැඳුනුම්පත ලබා දිය යුතුය.</p>
 
-            <label class="block text-sm font-bold text-gray-700 mt-3">ඔබේ බැංකුවේ නම</label>
+            <label class="block text-sm font-bold text-gray-700 mt-3">බැංකුවේ නම</label>
             <input type="text" id="regBankName" placeholder="උදා: BOC / Commercial" class="w-full p-2 border rounded bg-gray-50">
 
-            <label class="block text-sm font-bold text-gray-700 mt-3">ගිණුම් අංකය (Account No)</label>
+            <label class="block text-sm font-bold text-gray-700 mt-3">ශාඛාව (Branch)</label>
+            <input type="text" id="regBranchName" placeholder="උදා: කුරුණෑගල / කොළඹ" class="w-full p-2 border rounded bg-gray-50">
+
+            <label class="block text-sm font-bold text-gray-700 mt-3">ගිණුම් අංකය</label>
             <input type="number" id="regAccNo" placeholder="Account Number" class="w-full p-2 border rounded bg-gray-50">
 
             <label class="block text-sm font-bold text-gray-700 mt-3">NIC ෆොටෝ එක (ඉදිරිපස)</label>
-            <input type="file" id="regNicFile" accept="image/*" class="w-full text-sm text-gray-500 mt-1" onchange="previewImage(this)">
+            <input type="file" id="regNicFile" accept="image/*" class="w-full text-sm text-gray-500 mt-1" onchange="processImage(this, 'nicPreview')">
             <img id="nicPreview" class="image-preview">
             
             <button onclick="completeProfile()" id="saveProfileBtn" class="w-full bg-blue-700 text-white p-3 rounded-xl font-bold mt-6 shadow hover:bg-blue-800">
@@ -86,19 +89,24 @@
                 
                 <div class="flex items-center justify-center gap-2 mt-1 bg-white p-2 rounded border border-yellow-100 shadow-sm">
                     <span class="text-lg font-bold text-gray-800 tracking-wider">226-2-001-5-0072312</span>
-                    <button onclick="navigator.clipboard.writeText('226200150072312'); alert('Account Number Copied! ✅');" class="text-xs bg-gray-200 hover:bg-gray-300 p-2 rounded font-bold">📋 Copy</button>
+                    <button onclick="navigator.clipboard.writeText('226200150072312'); alert('Copied!');" class="text-xs bg-gray-200 hover:bg-gray-300 p-2 rounded font-bold">📋 Copy</button>
                 </div>
-                
-                <p class="text-[10px] text-red-500 mt-2">*මුදල් යවා ස්ලිප් එක පහතින් එවන්න</p>
             </div>
 
+            <h3 class="font-bold text-gray-800 mb-2">Step 2: විස්තර එවන්න</h3>
+            
             <input type="number" id="depositAmount" placeholder="තැන්පත් කළ මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-center font-bold">
-            <button onclick="requestDeposit()" class="w-full bg-green-600 text-white p-3 rounded-xl font-bold shadow-lg">ඉල්ලීම යවන්න</button>
+            
+            <label class="block text-sm font-bold text-gray-600 mb-1">Slip එකේ ෆොටෝ එකක් දාන්න 👇</label>
+            <input type="file" id="depositSlipFile" accept="image/*" class="w-full text-sm text-gray-500 mb-2" onchange="processImage(this, 'slipPreview')">
+            <img id="slipPreview" class="image-preview mb-3">
+
+            <button onclick="requestDeposit()" id="depositBtn" class="w-full bg-green-600 text-white p-3 rounded-xl font-bold shadow-lg">ඉල්ලීම යවන්න</button>
         </div>
 
         <div id="withdrawBox" class="hidden glass p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-red-500 animate-fade-in">
             <h3 class="font-bold text-gray-800 mb-2">මුදල් ආපසු ගැනීම</h3>
-            <p class="text-xs text-gray-500 mb-3">ඔබේ බැංකු ගිණුමට මුදල් එවනු ලැබේ.</p>
+            <p class="text-xs text-gray-500 mb-3">ඔබේ ලියාපදිංචි බැංකු ගිණුමට මුදල් එවනු ලැබේ.</p>
             <input type="number" id="withdrawAmount" placeholder="ගන්නා මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-center font-bold">
             <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white p-3 rounded-xl font-bold shadow-lg">WhatsApp ඉල්ලීම යවන්න</button>
         </div>
@@ -111,7 +119,7 @@
         import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-        // --- ඔබේ CONFIG එක මෙතනට දාන්න ---
+        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
             authDomain: "cnvbankbyuandy.firebaseapp.com",
@@ -131,12 +139,14 @@
         let userData = null;
         const ADMIN_WHATSAPP = "94726284277";
 
+        // Toggle UI
         window.toggleSection = (id) => {
             document.getElementById('depositBox').classList.add('hidden');
             document.getElementById('withdrawBox').classList.add('hidden');
             document.getElementById(id).classList.remove('hidden');
         };
 
+        // Auth
         window.googleLogin = () => { signInWithPopup(auth, provider).catch(err => alert("Login Error")); };
 
         onAuthStateChanged(auth, async (user) => {
@@ -146,7 +156,13 @@
                 const userSnap = await getDoc(userRef);
 
                 if (!userSnap.exists()) {
-                    await setDoc(userRef, { name: user.displayName, email: user.email, photo: user.photoURL, balance: 0, profileComplete: false });
+                    await setDoc(userRef, { 
+                        name: user.displayName, 
+                        email: user.email, 
+                        photo: user.photoURL, 
+                        balance: 0, 
+                        profileComplete: false 
+                    });
                     document.getElementById('loginView').classList.add('hidden');
                     document.getElementById('setupView').classList.remove('hidden');
                 } else {
@@ -165,39 +181,50 @@
             }
         });
 
-        let nicBase64 = "";
-        window.previewImage = (input) => {
+        // Image Processing (Compresses images to Base64)
+        let tempImages = { nicPreview: "", slipPreview: "" };
+
+        window.processImage = (input, previewId) => {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    document.getElementById('nicPreview').src = e.target.result;
-                    document.getElementById('nicPreview').style.display = 'block';
+                    const imgPreview = document.getElementById(previewId);
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = 'block';
                     
                     const image = new Image();
                     image.src = e.target.result;
                     image.onload = () => {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
+                        // Resize max width to 600px to save DB space
                         const scaleSize = 600 / image.width;
                         canvas.width = 600;
                         canvas.height = image.height * scaleSize;
                         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-                        nicBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        tempImages[previewId] = canvas.toDataURL('image/jpeg', 0.7);
                     };
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         };
 
+        // Profile Completion
         window.completeProfile = async () => {
             const bankName = document.getElementById('regBankName').value;
+            const branchName = document.getElementById('regBranchName').value; // New Field
             const accNo = document.getElementById('regAccNo').value;
-            if(!bankName || !accNo || !nicBase64) return alert("සියලු විස්තර අවශ්‍යයි.");
+            
+            if(!bankName || !branchName || !accNo || !tempImages['nicPreview']) 
+                return alert("කරුණාකර බැංකුව, ශාඛාව, ගිණුම් අංකය සහ NIC ඡායාරූපය ලබා දෙන්න.");
 
             document.getElementById('saveProfileBtn').innerText = "Saving...";
+            
             await updateDoc(doc(db, "users", currentUser.uid), {
-                bankDetails: `${bankName} - ${accNo}`,
-                nicImage: nicBase64,
+                bankName: bankName,
+                bankBranch: branchName,
+                bankAcc: accNo,
+                nicImage: tempImages['nicPreview'],
                 profileComplete: true
             });
             location.reload();
@@ -217,45 +244,66 @@
             });
         }
 
+        // Deposit Request (Sends Slip)
         window.requestDeposit = async () => {
             const amount = parseFloat(document.getElementById('depositAmount').value);
-            if (!amount) return alert("මුදල ඇතුළත් කරන්න");
+            const slipImg = tempImages['slipPreview'];
 
-            await addDoc(collection(db, "transactions"), {
-                userId: currentUser.uid,
-                userName: currentUser.displayName,
-                type: "deposit",
-                amount: amount,
-                status: "pending",
-                date: new Date()
-            });
-            alert("තැන්පතු ඉල්ලීම යැව්වා! Admin අනුමත කරනතුරු සිටින්න.");
-            document.getElementById('depositBox').classList.add('hidden');
-            document.getElementById('depositAmount').value = "";
+            if (!amount) return alert("මුදල ඇතුළත් කරන්න");
+            if (!slipImg) return alert("කරුණාකර ස්ලිප් එකේ ෆොටෝ එකක් දාන්න");
+
+            const btn = document.getElementById('depositBtn');
+            btn.innerText = "යවමින් පවතී...";
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentUser.uid,
+                    userName: currentUser.displayName,
+                    type: "deposit",
+                    amount: amount,
+                    status: "pending",
+                    slipImage: slipImg, // Uploading Slip
+                    date: new Date()
+                });
+                alert("ස්ලිප් එක යැව්වා! Admin බලනකම් ඉන්න.");
+                document.getElementById('depositBox').classList.add('hidden');
+                document.getElementById('depositAmount').value = "";
+                document.getElementById('slipPreview').style.display = 'none';
+                tempImages['slipPreview'] = "";
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+            btn.innerText = "ඉල්ලීම යවන්න";
+            btn.disabled = false;
         };
 
+        // Withdraw Request (Includes Branch Info)
         window.requestWithdraw = async () => {
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
             if (!amount) return alert("මුදල ඇතුළත් කරන්න");
 
+            // Save to DB
             await addDoc(collection(db, "transactions"), {
                 userId: currentUser.uid,
                 userName: currentUser.displayName,
-                userBank: userData.bankDetails,
+                userBankDetails: `${userData.bankName} (${userData.bankBranch}) - ${userData.bankAcc}`,
                 type: "withdraw",
                 amount: amount,
                 status: "pending",
                 date: new Date()
             });
 
-            const msg = `CNV Bank Withdraw:%0A👤 ${currentUser.displayName}%0A💸 Amount: Rs. ${amount}%0A🏦 To Bank: ${userData.bankDetails}%0A🕒 Request Time: ${new Date().toLocaleTimeString()}`;
+            // WhatsApp Message
+            const msg = `CNV Bank Withdraw Request:%0A👤 Name: ${currentUser.displayName}%0A💸 Amount: Rs. ${amount}%0A🏦 Bank: ${userData.bankName}%0A📍 Branch: ${userData.bankBranch}%0A🔢 Acc No: ${userData.bankAcc}%0A🕒 Time: ${new Date().toLocaleTimeString()}`;
+            
             window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${msg}`, '_blank');
             document.getElementById('withdrawBox').classList.add('hidden');
         };
 
         window.logout = () => signOut(auth).then(() => location.reload());
 
-        // Three.js Background
+        // Background Animation
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ alpha: true });
