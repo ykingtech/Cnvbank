@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNV Bank - 3D Secure Banking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
+        body { 
+            font-family: 'Noto Sans Sinhala', sans-serif; 
+            margin: 0;
+            overflow-x: hidden;
+        }
+        /* 3D Background Canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* අන්තර්ගතයට පිටුපසින් තැබීමට */
+            background: linear-gradient(to bottom, #0f172a, #1e3a8a);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="min-h-screen relative text-slate-800">
+
+    <div id="canvas-container"></div>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+        
+        <header class="p-4 text-center text-white">
+            <h1 class="text-4xl font-bold tracking-wider drop-shadow-lg">CNV BANK 🏦</h1>
+            <p class="text-sm opacity-80">Next Gen Banking with AI & 3D Tech</p>
+        </header>
+
+        <div id="loginSection" class="flex-1 flex flex-col justify-center items-center p-4">
+            <div class="glass-panel p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center border border-white/50">
+                <h2 class="text-2xl font-bold text-blue-900 mb-6">Welcome Back!</h2>
+                
+                <button onclick="googleLogin()" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 p-4 rounded-xl shadow-md hover:bg-gray-50 transition transform hover:scale-105 active:scale-95 group">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
+                    <span class="font-bold text-gray-700 group-hover:text-blue-600">Google Login</span>
+                </button>
+
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+                    <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500 rounded">Admin Only</span></div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="password" id="adminCode" placeholder="Admin Code" class="flex-1 p-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button onclick="checkAdmin()" class="bg-slate-800 text-white px-4 rounded-lg font-bold hover:bg-black">Go</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="userDashboard" class="hidden flex-1 p-4 max-w-md mx-auto w-full">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl mb-6 transform transition hover:scale-[1.02]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-blue-100 text-sm">වත්මන් ශේෂය (Balance)</p>
+                        <h1 class="text-4xl font-bold mt-1">Rs. <span id="userBalance">0.00</span></h1>
+                    </div>
+                    <img id="userPhoto" src="" class="w-12 h-12 rounded-full border-2 border-white/50 shadow-sm">
+                </div>
+                <p class="mt-4 text-sm font-medium">👋 ආයුබෝවන්, <span id="displayName">User</span></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <button onclick="toggleSection('depositBox')" class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition active:scale-95 text-center group">
+                    <div class="text-4xl mb-2 group-hover:scale-110 transition">💰</div>
+                    <div class="font-bold text-gray-700">තැන්පත්</div>
+                </button>
+                <button onclick="toggleSection('withdrawBox')" class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition active:scale-95 text-center group">
+                    <div class="text-4xl mb-2 group-hover:scale-110 transition">💸</div>
+                    <div class="font-bold text-gray-700">ගැනීම්</div>
+                </button>
+            </div>
+
+            <div id="depositBox" class="hidden glass-panel p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-green-500 animate-fade-in-up">
+                <h3 class="font-bold text-gray-800 mb-3 text-lg">මුදල් තැන්පත් කිරීම</h3>
+                <input type="number" id="depositAmount" placeholder="මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-lg font-bold text-center">
+                <button onclick="requestDeposit()" class="w-full bg-green-600 text-white p-3 rounded-xl font-bold shadow-lg active:bg-green-700">තැන්පතු ඉල්ලීම යවන්න</button>
+            </div>
+
+            <div id="withdrawBox" class="hidden glass-panel p-5 rounded-2xl shadow-lg mb-4 border-l-4 border-red-500 animate-fade-in-up">
+                <h3 class="font-bold text-gray-800 mb-3 text-lg">මුදල් ආපසු ගැනීම</h3>
+                <input type="number" id="withdrawAmount" placeholder="මුදල (Rs)" class="w-full p-3 border rounded-xl mb-3 text-lg font-bold text-center">
+                <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white p-3 rounded-xl font-bold shadow-lg active:bg-red-700">WhatsApp ඉල්ලීම යවන්න</button>
+            </div>
+
+            <button onclick="logout()" class="w-full bg-white/80 text-gray-700 p-3 rounded-xl font-bold mt-4 hover:bg-white">Log Out</button>
+        </div>
+
+        <div id="adminPanel" class="hidden flex-1 p-4 max-w-md mx-auto w-full">
+            <div class="flex justify-between items-center mb-6 text-white">
+                <h2 class="text-2xl font-bold">👑 Admin Console</h2>
+                <button onclick="location.reload()" class="bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm backdrop-blur-sm">Exit</button>
+            </div>
+            
+            <div class="glass-panel rounded-2xl shadow-xl p-4 min-h-[300px]">
+                <h3 class="font-bold text-gray-600 border-b pb-3 mb-3">Pending Transactions</h3>
+                <div id="pendingList" class="space-y-3">
+                    <p class="text-center text-gray-400 py-10">දත්ත ලෝඩ් වෙමින් පවතී...</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="p-4 text-center text-white/40 text-xs">
+            Powered by CNV Group & Three.js
+        </footer>
+    </div>
+
+    <script type="module">
+        // Import Functions (Using standard v9 CDN for stability)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, where, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+
+        // --- ඔබේ CONFIG එක ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
+            authDomain: "cnvbankbyuandy.firebaseapp.com",
+            projectId: "cnvbankbyuandy",
+            storageBucket: "cnvbankbyuandy.firebasestorage.app",
+            messagingSenderId: "654524804107",
+            appId: "1:654524804107:web:839811f4eb33b914786b0e",
+            measurementId: "G-PWWVKS8EEM"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        let currentUser = null;
+        
+        // --- ඔබේ විස්තර ---
+        const ADMIN_CODE = "cnvking88";
+        const ADMIN_WHATSAPP = "94726284277"; // 0 ඉවත් කර 94 එකතු කර ඇත
+
+        // --- 1. ADMIN LOGIN ---
+        window.checkAdmin = () => {
+            const code = document.getElementById('adminCode').value;
+            if(code === ADMIN_CODE) {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                loadAdminData();
+            } else {
+                alert("කෝඩ් එක වැරදියි! - Access Denied");
+            }
+        };
+
+        // --- 2. GOOGLE LOGIN ---
+        window.googleLogin = () => {
+            signInWithPopup(auth, provider)
+                .then(async (result) => {
+                    const user = result.user;
+                    await checkCreateUser(user);
+                }).catch((error) => {
+                    console.error("Login Failed", error);
+                    alert("ලොග් වීමේ දෝෂයක්: " + error.message);
+                });
+        };
+
+        async function checkCreateUser(user) {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                await setDoc(userRef, {
+                    name: user.displayName,
+                    email: user.email,
+                    photo: user.photoURL,
+                    balance: 0,
+                    createdAt: new Date()
+                });
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('userDashboard').classList.remove('hidden');
+                
+                document.getElementById('displayName').innerText = user.displayName.split(" ")[0];
+                document.getElementById('userPhoto').src = user.photoURL;
+
+                onSnapshot(doc(db, "users", user.uid), (doc) => {
+                    document.getElementById('userBalance').innerText = doc.data()?.balance.toFixed(2) || "0.00";
+                });
+            }
+        });
+
+        window.logout = () => {
+            signOut(auth).then(() => location.reload());
+        };
+
+        // --- UI TOGGLES ---
+        window.toggleSection = (id) => {
+            document.getElementById('depositBox').classList.add('hidden');
+            document.getElementById('withdrawBox').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
+        };
+
+        // --- TRANSACTIONS ---
+        window.requestDeposit = async () => {
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            if(!amount || amount <= 0) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
+
+            try {
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentUser.uid,
+                    userName: currentUser.displayName,
+                    type: "deposit",
+                    amount: amount,
+                    status: "pending",
+                    date: new Date()
+                });
+                alert("තැන්පතු ඉල්ලීම යැව්වා! Admin පිළිගන්නා තුරු රැඳී සිටින්න.");
+                document.getElementById('depositBox').classList.add('hidden');
+                document.getElementById('depositAmount').value = "";
+            } catch (e) {
+                alert("දෝෂයක්: " + e.message);
+            }
+        };
+
+        window.requestWithdraw = async () => {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            if(!amount || amount <= 0) return alert("කරුණාකර නිවැරදි මුදලක් ඇතුළත් කරන්න.");
+
+            try {
+                // Save to DB first
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentUser.uid,
+                    userName: currentUser.displayName,
+                    type: "withdraw",
+                    amount: amount,
+                    status: "pending",
+                    date: new Date()
+                });
+
+                // Open WhatsApp
+                const msg = `CNV Bank Withdraw Request:%0A👤 User: ${currentUser.displayName}%0A💸 Amount: Rs. ${amount}%0A🕒 Time: ${new Date().toLocaleTimeString()}`;
+                window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${msg}`, '_blank');
+                
+                document.getElementById('withdrawBox').classList.add('hidden');
+                document.getElementById('withdrawAmount').value = "";
+            } catch (e) {
+                alert("දෝෂයක්: " + e.message);
+            }
+        };
+
+        // --- ADMIN FUNCTIONS ---
+        function loadAdminData() {
+            const q = query(collection(db, "transactions"), where("status", "==", "pending"));
+            
+            onSnapshot(q, (snapshot) => {
+                const list = document.getElementById('pendingList');
+                list.innerHTML = "";
+                if(snapshot.empty) list.innerHTML = "<p class='text-center p-4 text-gray-500'>Pending Requests කිසිවක් නැත.</p>";
+
+                snapshot.forEach((docSnap) => {
+                    const t = docSnap.data();
+                    const isDep = t.type === 'deposit';
+                    const colorClass = isDep ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200';
+                    const icon = isDep ? '💰' : '💸';
+                    
+                    list.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded-xl border ${colorClass} mb-2 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">${icon}</span>
+                                <div>
+                                    <p class="font-bold text-sm text-gray-800">${t.userName}</p>
+                                    <p class="text-xs opacity-70">${isDep ? 'තැන්පතු' : 'ගැනීම්'}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-lg">Rs. ${t.amount}</p>
+                                <button onclick="approveTx('${docSnap.id}', '${t.userId}', ${t.amount}, '${t.type}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg mt-1 font-bold shadow">ACCEPT ✅</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        window.approveTx = async (txId, userId, amount, type) => {
+            if(!confirm(`Rs. ${amount} ක ${type} ගනුදෙනුව ස්ථිර කරනවද?`)) return;
+            
+            const adjustment = type === 'deposit' ? amount : -amount;
+            
+            try {
+                // Update Transaction Status
+                await updateDoc(doc(db, "transactions", txId), { status: "success" });
+                
+                // Update User Balance
+                await updateDoc(doc(db, "users", userId), {
+                    balance: increment(adjustment)
+                });
+                alert("ගනුදෙනුව සාර්ථකයි!");
+            } catch (e) {
+                console.error(e);
+                alert("දෝෂයක්: " + e.message);
+            }
+        }
+    </script>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true }); // Alpha true for transparency
+        
+        const container = document.getElementById('canvas-container');
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // Create Particles
+        const geometry = new THREE.BufferGeometry();
+        const particlesCount = 700;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            // Random positions spread out
+            posArray[i] = (Math.random() - 0.5) * 15;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        // Material
+        const material = new THREE.PointsMaterial({
+            size: 0.03,
+            color: 0x4f46e5, // Indigo color
+            transparent: true,
+            opacity: 0.8
+        });
+
+        // Mesh
+        const particlesMesh = new THREE.Points(geometry, material);
+        scene.add(particlesMesh);
+
+        camera.position.z = 3;
+
+        // Mouse Interaction
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX / window.innerWidth - 0.5;
+            mouseY = event.clientY / window.innerHeight - 0.5;
+        });
+
+        // Animation Loop
+        const animate = () => {
+            requestAnimationFrame(animate);
+
+            // Rotate entire system slowly
+            particlesMesh.rotation.y += 0.002;
+            particlesMesh.rotation.x += 0.002;
+
+            // React to mouse
+            particlesMesh.rotation.y += mouseX * 0.05;
+            particlesMesh.rotation.x += mouseY * 0.05;
+
+            renderer.render(scene, camera);
+        };
+
+        animate();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+
+</body>
+</html>
