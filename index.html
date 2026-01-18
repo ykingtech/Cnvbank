@@ -21,6 +21,10 @@
         .wheel { transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1); }
         @keyframes grow { 0% { transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .grow-anim { animation: grow 2s infinite ease-in-out; }
+        
+        /* Loading Spinner */
+        .loader { border: 4px solid rgba(255,255,255,0.1); border-left-color: #eab308; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="min-h-screen pb-24">
@@ -30,7 +34,12 @@
         <button onclick="installApp()" class="bg-yellow-500 text-black font-bold px-4 py-2 rounded-lg">Install</button>
     </div>
 
-    <div id="loginView" class="flex flex-col justify-center items-center min-h-screen p-4">
+    <div id="loadingView" class="flex flex-col justify-center items-center min-h-screen fixed inset-0 bg-[#0f172a] z-50">
+        <div class="loader mb-4"></div>
+        <h2 class="text-yellow-400 font-bold tracking-widest animate-pulse">CNV BANK...</h2>
+    </div>
+
+    <div id="loginView" class="hidden flex flex-col justify-center items-center min-h-screen p-4">
         <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">CNV BANK 🏆</h1>
         <p class="text-gray-400 mb-8 text-center">Save Smart. Win Big.</p>
         <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 hover:scale-105 transition mb-4">
@@ -119,10 +128,10 @@
             <div class="relative w-64 h-64 mx-auto mb-6">
                 <div id="theWheel" class="wheel w-full h-full rounded-full border-4 border-yellow-500 relative shadow-2xl" 
                      style="background: conic-gradient(#ef4444 0deg 90deg, #3b82f6 90deg 180deg, #22c55e 180deg 270deg, #eab308 270deg 360deg);">
-                     <span class="absolute top-10 left-10 text-white font-bold -rotate-45">Rs.20</span>
-                     <span class="absolute top-10 right-10 text-white font-bold rotate-45">Rs.50</span>
-                     <span class="absolute bottom-10 right-10 text-white font-bold rotate-[135deg]">Rs.100</span>
-                     <span class="absolute bottom-10 left-10 text-white font-bold rotate-[225deg]">Rs.200</span>
+                     <span class="absolute top-10 left-10 text-white font-bold transform -rotate-45">Rs.20</span>
+                     <span class="absolute top-10 right-10 text-white font-bold transform rotate-45">Rs.50</span>
+                     <span class="absolute bottom-10 right-10 text-white font-bold transform rotate-[135deg]">Rs.100</span>
+                     <span class="absolute bottom-10 left-10 text-white font-bold transform rotate-[225deg]">Rs.200</span>
                 </div>
                 <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 text-3xl text-white">▼</div>
             </div>
@@ -166,7 +175,7 @@
             <h2 class="text-xl font-bold text-yellow-400 mb-4">📜 Terms & Conditions</h2>
             <div class="h-64 overflow-y-auto text-sm text-gray-300 space-y-3 pr-2">
                 <p><strong>1. Savings & Goals:</strong> You must reach 100% of your Goal Target to withdraw money without penalty.</p>
-                <p><strong>2. Interest (10k Club):</strong> Daily interest of 0.05% is added ONLY if your total balance exceeds Rs. 10,000.</p>
+                <p><strong>2. Interest (10k Club):</strong> Daily interest of 0.01% is added ONLY if your total balance exceeds Rs. 10,000.</p>
                 <p><strong>3. Instant Loans:</strong> You can request up to 50% of your total savings. A <strong>1% Fee</strong> will be deducted from your current balance immediately.</p>
                 <p><strong>4. Lucky Spins:</strong> You earn 1 Spin for every Rs. 1000 deposited. Spins guarantee cash prizes added to your goal.</p>
                 <p><strong>5. Debt:</strong> Any loan taken is recorded as Debt. You must clear Debt before full withdrawal.</p>
@@ -202,6 +211,9 @@
         window.logout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, async (user) => {
+            // FIX: Hide loading, Show correct view
+            document.getElementById('loadingView').classList.add('hidden');
+            
             if (user) {
                 currentUser = user;
                 const userRef = doc(db, "users", user.uid);
@@ -216,7 +228,9 @@
                     });
                     location.reload();
                 } else { loadDashboard(snap.data()); }
-            } else { document.getElementById('loginView').classList.remove('hidden'); }
+            } else { 
+                document.getElementById('loginView').classList.remove('hidden'); 
+            }
         });
 
         function loadDashboard(data) {
@@ -227,14 +241,12 @@
 
             onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
                 userData = docSnap.data();
-                checkAndAddInterest(userData); // Check Interest Logic
+                checkAndAddInterest(userData); 
 
                 const goals = userData.goals || [{name:"Main Goal", target:10000, saved: 0}];
                 const activeIdx = (userData.activeGoalIndex !== undefined) ? userData.activeGoalIndex : 0;
                 const currentGoal = goals[activeIdx] || goals[0];
                 const currentBalance = currentGoal.saved || 0;
-
-                // Total Balance Calculation for Global Logic
                 let totalGlobalBalance = 0; goals.forEach(g => totalGlobalBalance += (g.saved || 0));
 
                 document.getElementById('currentGoalName').innerText = currentGoal.name;
@@ -247,18 +259,15 @@
                     document.getElementById('debtAmount').innerText = userData.debt;
                 } else { document.getElementById('debtDisplayBox').classList.add('hidden'); }
 
-                // Interest Status Bar
                 const moneyPct = Math.min((totalGlobalBalance / 10000) * 100, 100);
                 document.getElementById('moneyBar').style.width = `${moneyPct}%`;
                 const intStatus = document.getElementById('interestStatus');
                 if(totalGlobalBalance >= 10000) {
                     document.getElementById('moneyBar').classList.add('bg-green-500');
-                    intStatus.innerText = "Interest Active ✅ (Daily)";
-                    intStatus.className = "text-[10px] text-green-400 font-bold";
+                    intStatus.innerText = "Interest Active ✅ (Daily)"; intStatus.className = "text-[10px] text-green-400 font-bold";
                 } else {
                     document.getElementById('moneyBar').classList.remove('bg-green-500');
-                    intStatus.innerText = "LOCKED 🔒 (Reach 10k)";
-                    intStatus.className = "text-[10px] text-gray-400";
+                    intStatus.innerText = "LOCKED 🔒 (Reach 10k)"; intStatus.className = "text-[10px] text-gray-400";
                 }
 
                 let level = "Bronze"; if(totalGlobalBalance > 10000) level = "Silver"; if(currentBalance > currentGoal.target) level = "Gold";
@@ -272,11 +281,9 @@
                 document.getElementById('treeIcon').innerText = tree;
 
                 if(currentBalance >= currentGoal.target && currentBalance > 0) {
-                    document.getElementById('withdrawLock').classList.add('hidden');
-                    document.getElementById('withdrawForm').classList.remove('hidden');
+                    document.getElementById('withdrawLock').classList.add('hidden'); document.getElementById('withdrawForm').classList.remove('hidden');
                 } else {
-                    document.getElementById('withdrawLock').classList.remove('hidden');
-                    document.getElementById('withdrawForm').classList.add('hidden');
+                    document.getElementById('withdrawLock').classList.remove('hidden'); document.getElementById('withdrawForm').classList.add('hidden');
                 }
 
                 const spinCount = userData.availableSpins || 0;
@@ -292,32 +299,16 @@
             });
         }
 
-        // --- NEW: INTEREST LOGIC (Daily 0.05%) ---
         async function checkAndAddInterest(u) {
             let totalBal = 0; (u.goals || []).forEach(g => totalBal += (g.saved || 0));
-            
-            if(totalBal < 10000) return; // Only for 10k+
-
+            if(totalBal < 10000) return; 
             const lastDate = u.lastInterestDate ? u.lastInterestDate.toDate() : new Date(0);
             const now = new Date();
-            const oneDay = 24 * 60 * 60 * 1000;
-
-            // Check if 24 hours passed since last interest
-            if(now.getTime() - lastDate.getTime() > oneDay) {
-                const interestAmount = totalBal * 0.0005; // 0.05% Daily
+            if(now.getTime() - lastDate.getTime() > (24 * 60 * 60 * 1000)) {
+                const interestAmount = totalBal * 0.0005; 
                 const goals = u.goals;
-                // Add interest to the first goal (Main) or spread it? Let's add to Main.
-                if(!goals[0].saved) goals[0].saved = 0;
-                goals[0].saved += interestAmount;
-
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    goals: goals,
-                    lastInterestDate: Timestamp.now(),
-                    balance: increment(interestAmount) // Keep global balance synced
-                });
-                
-                // Optional: Notify via alert or log
-                console.log(`Interest Added: Rs. ${interestAmount}`);
+                if(!goals[0].saved) goals[0].saved = 0; goals[0].saved += interestAmount;
+                await updateDoc(doc(db, "users", currentUser.uid), { goals: goals, lastInterestDate: Timestamp.now(), balance: increment(interestAmount) });
             }
         }
 
@@ -346,8 +337,18 @@
             if((userData.availableSpins || 0) <= 0) return;
             const btn = document.getElementById('spinBtn'); btn.disabled = true; 
             const wheel = document.getElementById('theWheel');
-            const prizes = [20, 50, 100, 200]; const prize = prizes[Math.floor(Math.random() * prizes.length)];
-            const rot = 360 * 5 + Math.floor(Math.random() * 360); wheel.style.transform = `rotate(${rot}deg)`;
+            const prizes = [20, 50, 100, 200]; 
+            const prize = prizes[Math.floor(Math.random() * prizes.length)];
+            
+            // TARGET ANGLE MAPPING
+            let targetAngle = 0;
+            if (prize === 20) targetAngle = 45; 
+            else if (prize === 50) targetAngle = 315;
+            else if (prize === 100) targetAngle = 225;
+            else if (prize === 200) targetAngle = 135;
+
+            const rot = (360 * 8) + targetAngle + Math.floor(Math.random() * 20 - 10);
+            wheel.style.transform = `rotate(${rot}deg)`;
 
             setTimeout(async () => {
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -373,38 +374,20 @@
             document.getElementById('loanModal').classList.remove('hidden');
         };
 
-        // --- NEW: LOAN FEE LOGIC (1%) ---
         window.requestLoan = async () => {
             const req = parseFloat(document.getElementById('loanAmountReq').value);
-            let totalBal = 0; 
-            const goals = userData.goals || [];
-            goals.forEach(g => totalBal += (g.saved || 0));
+            let totalBal = 0; const goals = userData.goals || []; goals.forEach(g => totalBal += (g.saved || 0));
             
             if(!req || req <= 0) return alert("Enter amount");
             if(req > (totalBal * 0.5)) return alert("Limit Exceeded!");
 
-            const fee = req * 0.01; // 1% Fee
-            
-            // Check if user has enough balance to cover the fee
-            // (Strictly speaking, since loan max is 50%, they have enough balance, but we need to deduct it)
+            const fee = req * 0.01; 
             
             if(confirm(`Request Loan of Rs. ${req}?\n\nA Fee of Rs. ${fee} (1%) will be deducted from your savings.`)) {
-                
-                // Deduct Fee from Active Goal
                 const idx = userData.activeGoalIndex || 0;
-                if(goals[idx].saved >= fee) {
-                    goals[idx].saved -= fee;
-                } else {
-                    // Fallback: Deduct from first goal if active doesn't have enough
-                    goals[0].saved -= fee; 
-                }
+                if(goals[idx].saved >= fee) { goals[idx].saved -= fee; } else { goals[0].saved -= fee; }
 
-                // Update DB with Fee Deduction
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    goals: goals,
-                    balance: increment(-fee) 
-                });
-
+                await updateDoc(doc(db, "users", currentUser.uid), { goals: goals, balance: increment(-fee) });
                 await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "loan_request", amount: req, status: "pending", date: new Date(), feeDetails: `1% Fee (Rs.${fee}) Paid` });
                 
                 const msg = `🔔 *New Loan Request*\n\n👤 User: ${userData.name}\n💰 Loan Amount: Rs. ${req}\n📉 Fee Paid: Rs. ${fee}\n🏦 Total Savings: Rs. ${totalBal}\n\nPlease approve in Admin Panel.`;
