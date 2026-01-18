@@ -31,7 +31,7 @@
     </div>
 
     <div id="loginView" class="flex flex-col justify-center items-center min-h-screen p-4">
-        <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">CNV BANK🏆</h1>
+        <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">CNV BANK 🏆</h1>
         <p class="text-gray-400 mb-8 text-center">Save Smart. Win Big.</p>
         <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 hover:scale-105 transition">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6"> Google Login
@@ -50,12 +50,12 @@
             <img id="userImg" src="" class="w-12 h-12 rounded-full border-2 border-yellow-500">
         </div>
 
-        <div onclick="openSpinWheel()" class="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-xl mb-4 flex justify-between items-center shadow-lg relative overflow-hidden cursor-pointer transform active:scale-95 transition">
+        <div onclick="openSpinWheel()" class="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-xl mb-4 flex justify-between items-center shadow-lg cursor-pointer transform active:scale-95 transition relative overflow-hidden">
             <div>
-                <h3 class="font-bold text-white">🎰 Weekly Spin</h3>
-                <p class="text-[10px] text-pink-200" id="spinTimerText">Checking...</p>
+                <h3 class="font-bold text-white">🎰 Lucky Spin</h3>
+                <p class="text-[10px] text-pink-200">1 Spin per Rs.1000 Deposit</p>
             </div>
-            <div id="spinStatusBadge" class="bg-white text-purple-600 px-3 py-1 rounded-full font-bold text-xs">Wait</div>
+            <div id="spinStatusBadge" class="bg-white text-purple-600 px-3 py-1 rounded-full font-bold text-xs">0 Spins</div>
         </div>
 
         <div class="glass p-6 rounded-3xl mb-4 text-center relative overflow-hidden">
@@ -77,6 +77,10 @@
                 <p class="text-xs text-red-300 font-bold flex items-center gap-2"><span>⚠️</span> Current Debt: Rs. <span id="debtAmount">0</span></p>
             </div>
         </div>
+
+        <button onclick="requestDeposit()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg mb-4 flex justify-center items-center gap-2 animate-pulse">
+            <span>💰</span> Deposit Money (Add Funds)
+        </button>
 
         <div class="glass p-4 rounded-2xl mb-4">
             <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Target Progress</span><span id="targetPercentText">0%</span></div>
@@ -109,8 +113,8 @@
     <div id="spinModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center relative overflow-hidden border border-purple-500">
             <button onclick="document.getElementById('spinModal').classList.add('hidden')" class="absolute top-2 right-4 text-gray-400 text-xl">✕</button>
-            <h2 class="text-2xl font-bold text-purple-400 mb-2">Weekly Lucky Spin 🎡</h2>
-            <p id="modalTimerText" class="text-xs text-gray-400 mb-4">Spin available every 7 days!</p>
+            <h2 class="text-2xl font-bold text-purple-400 mb-2">Lucky Spin 🎡</h2>
+            <p id="spinsLeftText" class="text-sm text-white font-bold mb-4 bg-purple-900/50 p-2 rounded inline-block">Spins Left: 0</p>
             
             <div class="relative w-64 h-64 mx-auto mb-6">
                 <div id="theWheel" class="wheel w-full h-full rounded-full border-4 border-yellow-500 relative shadow-2xl" 
@@ -123,7 +127,7 @@
                 <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 text-3xl text-white">▼</div>
             </div>
             <p id="spinResult" class="text-white font-bold mb-4 h-6"></p>
-            <button id="spinBtn" onclick="spinTheWheel()" class="w-full bg-gray-600 text-white font-bold py-3 rounded-xl shadow-lg cursor-not-allowed" disabled>LOCKED 🔒</button>
+            <button id="spinBtn" onclick="spinTheWheel()" class="w-full bg-gray-600 text-white font-bold py-3 rounded-xl shadow-lg cursor-not-allowed" disabled>NO SPINS 🔒</button>
         </div>
     </div>
 
@@ -169,31 +173,16 @@
         import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, updateDoc, increment, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
-            authDomain: "cnvbankbyuandy.firebaseapp.com",
-            projectId: "cnvbankbyuandy",
-            storageBucket: "cnvbankbyuandy.firebasestorage.app",
-            messagingSenderId: "654524804107",
-            appId: "1:654524804107:web:839811f4eb33b914786b0e"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        const firebaseConfig = { apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk", authDomain: "cnvbankbyuandy.firebaseapp.com", projectId: "cnvbankbyuandy", storageBucket: "cnvbankbyuandy.firebasestorage.app", messagingSenderId: "654524804107", appId: "1:654524804107:web:839811f4eb33b914786b0e" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const provider = new GoogleAuthProvider();
         
-        let currentUser = null;
-        let userData = null;
-        let spinInterval = null;
+        let currentUser = null, userData = null;
 
-        // PWA
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('installPrompt').classList.remove('hidden'); });
         window.installApp = async () => { if(deferredPrompt) { deferredPrompt.prompt(); document.getElementById('installPrompt').classList.add('hidden'); } };
 
-        // AUTH
         window.googleLogin = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
         window.logout = () => signOut(auth).then(() => location.reload());
 
@@ -202,25 +191,16 @@
                 currentUser = user;
                 const userRef = doc(db, "users", user.uid);
                 const snap = await getDoc(userRef);
-
                 if (!snap.exists()) {
-                    const accNo = "CNV" + Math.floor(1000000000 + Math.random() * 9000000000);
-                    // Initial Setup
                     await setDoc(userRef, {
                         name: user.displayName, email: user.email, photo: user.photoURL,
-                        balance: 0, streak: 0, debt: 0, 
-                        nextSpinTime: Timestamp.now(), 
-                        accountNo: accNo, joinedDate: new Date().toLocaleDateString(),
-                        activeGoalIndex: 0,
-                        goals: [{ name: "Main Goal", target: 10000, saved: 0 }] 
+                        balance: 0, streak: 0, debt: 0, availableSpins: 0,
+                        accountNo: "CNV"+Math.floor(1000000000+Math.random()*9000000000), 
+                        activeGoalIndex: 0, goals: [{ name: "Main Goal", target: 10000, saved: 0 }] 
                     });
                     location.reload();
-                } else {
-                    loadDashboard(snap.data());
-                }
-            } else {
-                document.getElementById('loginView').classList.remove('hidden');
-            }
+                } else { loadDashboard(snap.data()); }
+            } else { document.getElementById('loginView').classList.remove('hidden'); }
         });
 
         function loadDashboard(data) {
@@ -231,9 +211,7 @@
 
             onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
                 userData = docSnap.data();
-                
-                // 1. GOAL LOGIC
-                const goals = userData.goals || [{name:"Main Goal", target:100000, saved: 0}];
+                const goals = userData.goals || [{name:"Main Goal", target:10000, saved: 0}];
                 const activeIdx = (userData.activeGoalIndex !== undefined) ? userData.activeGoalIndex : 0;
                 const currentGoal = goals[activeIdx] || goals[0];
                 const currentBalance = currentGoal.saved || 0;
@@ -243,34 +221,21 @@
                 document.getElementById('targetDisplay').innerText = currentGoal.target;
                 document.getElementById('streakCount').innerText = userData.streak || 0;
 
-                // DEBT LOGIC
                 if(userData.debt > 0) {
                     document.getElementById('debtDisplayBox').classList.remove('hidden');
                     document.getElementById('debtAmount').innerText = userData.debt;
-                } else {
-                    document.getElementById('debtDisplayBox').classList.add('hidden');
-                }
+                } else { document.getElementById('debtDisplayBox').classList.add('hidden'); }
 
-                // LEVELS & PROGRESS
-                let level = "Bronze";
-                if(currentBalance > 10000) level = "Silver";
-                if(currentBalance > currentGoal.target) level = "Gold";
+                let level = "Bronze"; if(currentBalance > 10000) level = "Silver"; if(currentBalance > currentGoal.target) level = "Gold";
                 document.getElementById('userLevel').innerText = level;
 
                 const pct = (currentBalance / currentGoal.target) * 100;
                 document.getElementById('targetBar').style.width = `${Math.min(pct,100)}%`;
                 document.getElementById('targetPercentText').innerText = `${pct.toFixed(1)}%`;
 
-                const mPct = Math.min((currentBalance / 10000) * 100, 100);
-                document.getElementById('moneyBar').style.width = `${mPct}%`;
-                if(currentBalance>=10000) document.getElementById('moneyBar').classList.add('bg-green-500');
-
-                // TREE
-                let tree = "🌱";
-                if(pct>20) tree="🌿"; if(pct>50) tree="🌳"; if(pct>80) tree="🌲"; if(pct>=100) tree="🎄";
+                let tree = "🌱"; if(pct>20) tree="🌿"; if(pct>50) tree="🌳"; if(pct>80) tree="🌲"; if(pct>=100) tree="🎄";
                 document.getElementById('treeIcon').innerText = tree;
 
-                // LOCK WITHDRAW
                 if(currentBalance >= currentGoal.target && currentBalance > 0) {
                     document.getElementById('withdrawLock').classList.add('hidden');
                     document.getElementById('withdrawForm').classList.remove('hidden');
@@ -279,41 +244,42 @@
                     document.getElementById('withdrawForm').classList.add('hidden');
                 }
 
-                startSpinTimer();
+                // Update Spin Badge (Based on Count)
+                const spinCount = userData.availableSpins || 0;
+                const badge = document.getElementById('spinStatusBadge');
+                badge.innerText = `${spinCount} Spins`;
+                if(spinCount > 0) badge.classList.replace('text-purple-600', 'text-green-600');
+                else badge.classList.replace('text-green-600', 'text-purple-600');
             });
         }
 
-        // --- 2. SPIN TIMER (WEEKLY) ---
-        function startSpinTimer() {
-            if(spinInterval) clearInterval(spinInterval);
-            spinInterval = setInterval(() => {
-                const now = new Date().getTime();
-                const nextSpin = userData.nextSpinTime ? userData.nextSpinTime.toDate().getTime() : 0;
-                const distance = nextSpin - now;
-                const btn = document.getElementById('spinBtn');
-                const timerText = document.getElementById('spinTimerText');
-                const modalText = document.getElementById('modalTimerText');
-                const badge = document.getElementById('spinStatusBadge');
+        // --- NEW: DEPOSIT REQUEST FUNCTION ---
+        window.requestDeposit = async () => {
+            const amount = prompt("Enter amount to deposit (Rs):");
+            if(amount && !isNaN(amount) && parseFloat(amount) > 0) {
+                const req = parseFloat(amount);
+                const msg = `🔔 *New Deposit Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${req}\n\nPlease check Admin Panel to approve.`;
+                window.open(`https://wa.me/94726284277?text=${encodeURIComponent(msg)}`, '_blank');
+            } else if (amount) {
+                alert("Invalid Amount!");
+            }
+        };
 
-                if (distance < 0) {
-                    timerText.innerText = "Available! 🎰"; modalText.innerText = "Good Luck!";
-                    badge.innerText = "READY"; badge.classList.replace('text-purple-600', 'text-green-600');
-                    btn.disabled = false; btn.innerText = "SPIN NOW!"; btn.classList.remove('bg-gray-600', 'cursor-not-allowed'); btn.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600');
-                } else {
-                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    timerText.innerText = `${d}d ${h}h ${m}m left`;
-                    modalText.innerText = `Wait: ${d}d ${h}h ${m}m`;
-                    badge.innerText = "WAIT"; badge.classList.replace('text-green-600', 'text-purple-600');
-                    btn.disabled = true; btn.innerText = "LOCKED 🔒"; btn.classList.add('bg-gray-600'); btn.classList.remove('bg-gradient-to-r');
-                }
-            }, 1000);
-        }
-        window.openSpinWheel = () => document.getElementById('spinModal').classList.remove('hidden');
+        // --- SPIN LOGIC (COUNT BASED) ---
+        window.openSpinWheel = () => {
+            const spins = userData.availableSpins || 0;
+            document.getElementById('spinsLeftText').innerText = `Spins Left: ${spins}`;
+            const btn = document.getElementById('spinBtn');
+            if(spins > 0) {
+                btn.disabled = false; btn.innerText = "SPIN NOW!"; btn.classList.remove('bg-gray-600', 'cursor-not-allowed'); btn.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600');
+            } else {
+                btn.disabled = true; btn.innerText = "NO SPINS 🔒"; btn.classList.add('bg-gray-600', 'cursor-not-allowed'); btn.classList.remove('bg-gradient-to-r');
+            }
+            document.getElementById('spinModal').classList.remove('hidden');
+        };
 
-        // SPIN LOGIC
         window.spinTheWheel = async () => {
+            if((userData.availableSpins || 0) <= 0) return;
             const btn = document.getElementById('spinBtn'); btn.disabled = true; 
             const wheel = document.getElementById('theWheel');
             const prizes = [20, 50, 100, 200]; const prize = prizes[Math.floor(Math.random() * prizes.length)];
@@ -323,23 +289,19 @@
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                 document.getElementById('spinResult').innerText = `You won Rs. ${prize}!`;
                 
-                // Add prize to active goal
-                const goals = userData.goals;
-                const idx = userData.activeGoalIndex || 0;
-                if(!goals[idx].saved) goals[idx].saved = 0;
-                goals[idx].saved += prize;
+                const goals = userData.goals; const idx = userData.activeGoalIndex || 0;
+                if(!goals[idx].saved) goals[idx].saved = 0; goals[idx].saved += prize;
 
-                const nextDate = new Date(); nextDate.setDate(nextDate.getDate() + 7); // +7 Days
-                await updateDoc(doc(db, "users", currentUser.uid), { goals: goals, nextSpinTime: Timestamp.fromDate(nextDate) });
-                await addDoc(collection(db, "transactions"), {
-                    userId: currentUser.uid, userName: userData.name, type: "spin_win", amount: prize, status: "success", date: new Date()
+                await updateDoc(doc(db, "users", currentUser.uid), { 
+                    goals: goals, 
+                    availableSpins: increment(-1) // Deduct 1 spin
                 });
+                await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "spin_win", amount: prize, status: "success", date: new Date() });
                 
-                setTimeout(() => { document.getElementById('spinModal').classList.add('hidden'); wheel.style.transform = 'rotate(0deg)'; }, 2000);
+                setTimeout(() => { document.getElementById('spinModal').classList.add('hidden'); wheel.style.transform = 'rotate(0deg)'; document.getElementById('spinResult').innerText = ""; }, 2000);
             }, 4000);
         };
 
-        // --- 3. LOAN & WHATSAPP ---
         window.openLoanModal = () => {
             let totalBal = 0; (userData.goals || []).forEach(g => totalBal += (g.saved || 0));
             const max = totalBal * 0.5;
@@ -351,27 +313,18 @@
         window.requestLoan = async () => {
             const req = parseFloat(document.getElementById('loanAmountReq').value);
             let totalBal = 0; (userData.goals || []).forEach(g => totalBal += (g.saved || 0));
-            const max = totalBal * 0.5;
             
             if(!req || req <= 0) return alert("Enter amount");
-            if(req > max) return alert("Limit Exceeded!");
+            if(req > (totalBal * 0.5)) return alert("Limit Exceeded!");
 
             if(confirm("Send Request?")) {
-                await addDoc(collection(db, "transactions"), {
-                    userId: currentUser.uid, userName: userData.name, type: "loan_request", amount: req, status: "pending", date: new Date()
-                });
-                
-                // WHATSAPP URL GENERATION
-                const adminPhone = "94726284277";
+                await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "loan_request", amount: req, status: "pending", date: new Date() });
                 const msg = `🔔 *New Loan Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${req}\n🏦 Total Savings: Rs. ${totalBal}\n\nPlease approve in Admin Panel.`;
-                window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                
-                alert("Request Sent to WhatsApp!");
+                window.open(`https://wa.me/94726284277?text=${encodeURIComponent(msg)}`, '_blank');
                 document.getElementById('loanModal').classList.add('hidden');
             }
         };
 
-        // --- 4. GOALS ---
         window.openGoalManager = () => { document.getElementById('goalModal').classList.remove('hidden'); renderGoals(); };
         function renderGoals() {
             const list = document.getElementById('goalsList'); list.innerHTML = "";
@@ -391,7 +344,6 @@
         };
         window.switchGoal = async (idx) => { await updateDoc(doc(db, "users", currentUser.uid), { activeGoalIndex: idx }); renderGoals(); };
 
-        // CARD GEN
         window.generateCard = () => {
             const canvas = document.getElementById('cardCanvas'); const ctx = canvas.getContext('2d'); const u = userData;
             const grad = ctx.createLinearGradient(0, 0, 1000, 600); grad.addColorStop(0, '#000000'); grad.addColorStop(0.4, '#1a1a1a'); grad.addColorStop(1, '#2c2c2c'); ctx.fillStyle = grad; ctx.fillRect(0, 0, 1000, 600); ctx.strokeStyle = '#eab308'; ctx.lineWidth = 15; ctx.strokeRect(20, 20, 960, 560);
