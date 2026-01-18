@@ -21,10 +21,6 @@
         .wheel { transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1); }
         @keyframes grow { 0% { transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .grow-anim { animation: grow 2s infinite ease-in-out; }
-        
-        /* Loading Spinner */
-        .loader { border: 4px solid rgba(255,255,255,0.1); border-left-color: #eab308; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="min-h-screen pb-24">
@@ -34,12 +30,7 @@
         <button onclick="installApp()" class="bg-yellow-500 text-black font-bold px-4 py-2 rounded-lg">Install</button>
     </div>
 
-    <div id="loadingView" class="flex flex-col justify-center items-center min-h-screen fixed inset-0 bg-[#0f172a] z-50">
-        <div class="loader mb-4"></div>
-        <h2 class="text-yellow-400 font-bold tracking-widest animate-pulse">CNV BANK...</h2>
-    </div>
-
-    <div id="loginView" class="hidden flex flex-col justify-center items-center min-h-screen p-4">
+    <div id="loginView" class="flex flex-col justify-center items-center min-h-screen p-4">
         <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">CNV BANK 🏆</h1>
         <p class="text-gray-400 mb-8 text-center">Save Smart. Win Big.</p>
         <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 hover:scale-105 transition mb-4">
@@ -110,14 +101,34 @@
         
         <div class="glass p-4 rounded-2xl border-l-4 border-red-500 relative mb-20">
             <h3 class="font-bold text-gray-200 mb-2">Withdraw</h3>
+            
             <div id="withdrawLock" class="absolute inset-0 bg-gray-900/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-r-2xl p-4">
                 <span class="text-xl mb-1">🔒</span><p class="text-[10px] text-gray-400">Complete Goal to Unlock</p>
             </div>
+
             <div id="withdrawForm" class="hidden">
-                <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white font-bold py-2 rounded text-sm">Request Withdrawal</button>
+                <div class="mb-3">
+                    <label class="text-xs text-gray-400 block mb-1">Withdraw Method:</label>
+                    <div class="flex gap-2">
+                        <label class="flex-1 cursor-pointer bg-gray-700 p-2 rounded text-center text-xs hover:bg-gray-600">
+                            <input type="radio" name="wType" value="cash" checked onclick="toggleWithdrawMethod()" class="mr-1"> Cash 💵
+                        </label>
+                        <label class="flex-1 cursor-pointer bg-gray-700 p-2 rounded text-center text-xs hover:bg-gray-600">
+                            <input type="radio" name="wType" value="bank" onclick="toggleWithdrawMethod()" class="mr-1"> Bank 🏦
+                        </label>
+                    </div>
+                </div>
+
+                <div id="bankDetailsSection" class="hidden mb-3 space-y-2 bg-gray-800 p-2 rounded border border-gray-600">
+                    <input type="text" id="wBankName" placeholder="Bank Name" class="w-full p-2 bg-gray-900 text-white text-xs border border-gray-600 rounded">
+                    <input type="text" id="wBranchName" placeholder="Branch Name" class="w-full p-2 bg-gray-900 text-white text-xs border border-gray-600 rounded">
+                    <input type="number" id="wAccountNo" placeholder="Account Number" class="w-full p-2 bg-gray-900 text-white text-xs border border-gray-600 rounded">
+                </div>
+
+                <input type="number" id="wAmount" placeholder="Amount to Withdraw (Rs)" class="w-full p-2 bg-gray-900 text-white border border-gray-600 rounded mb-3">
+                <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white font-bold py-2 rounded text-sm hover:bg-red-700">Request Withdrawal</button>
             </div>
-            <div class="h-10 opacity-0"></div>
-        </div>
+            <div class="h-10 opacity-0"></div> </div>
     </div>
 
     <div id="spinModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
@@ -175,7 +186,7 @@
             <h2 class="text-xl font-bold text-yellow-400 mb-4">📜 Terms & Conditions</h2>
             <div class="h-64 overflow-y-auto text-sm text-gray-300 space-y-3 pr-2">
                 <p><strong>1. Savings & Goals:</strong> You must reach 100% of your Goal Target to withdraw money without penalty.</p>
-                <p><strong>2. Interest (10k Club):</strong> Daily interest of 0.01% is added ONLY if your total balance exceeds Rs. 10,000.</p>
+                <p><strong>2. Interest (10k Club):</strong> Daily interest of 0.05% is added ONLY if your total balance exceeds Rs. 10,000.</p>
                 <p><strong>3. Instant Loans:</strong> You can request up to 50% of your total savings. A <strong>1% Fee</strong> will be deducted from your current balance immediately.</p>
                 <p><strong>4. Lucky Spins:</strong> You earn 1 Spin for every Rs. 1000 deposited. Spins guarantee cash prizes added to your goal.</p>
                 <p><strong>5. Debt:</strong> Any loan taken is recorded as Debt. You must clear Debt before full withdrawal.</p>
@@ -211,9 +222,6 @@
         window.logout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, async (user) => {
-            // FIX: Hide loading, Show correct view
-            document.getElementById('loadingView').classList.add('hidden');
-            
             if (user) {
                 currentUser = user;
                 const userRef = doc(db, "users", user.uid);
@@ -228,9 +236,7 @@
                     });
                     location.reload();
                 } else { loadDashboard(snap.data()); }
-            } else { 
-                document.getElementById('loginView').classList.remove('hidden'); 
-            }
+            } else { document.getElementById('loginView').classList.remove('hidden'); }
         });
 
         function loadDashboard(data) {
@@ -340,7 +346,6 @@
             const prizes = [20, 50, 100, 200]; 
             const prize = prizes[Math.floor(Math.random() * prizes.length)];
             
-            // TARGET ANGLE MAPPING
             let targetAngle = 0;
             if (prize === 20) targetAngle = 45; 
             else if (prize === 50) targetAngle = 315;
@@ -396,6 +401,56 @@
             }
         };
 
+        // --- WITHDRAWAL LOGIC UPDATE ---
+        window.toggleWithdrawMethod = () => {
+            const method = document.querySelector('input[name="wType"]:checked').value;
+            const bankDiv = document.getElementById('bankDetailsSection');
+            if (method === 'bank') bankDiv.classList.remove('hidden');
+            else bankDiv.classList.add('hidden');
+        };
+
+        window.requestWithdraw = async () => {
+            const amount = parseFloat(document.getElementById('wAmount').value);
+            if (!amount || amount <= 0) return alert("Enter a valid amount!");
+
+            const method = document.querySelector('input[name="wType"]:checked').value;
+            let details = "Cash Withdrawal";
+            let bankMsgPart = "";
+
+            if (method === 'bank') {
+                const bank = document.getElementById('wBankName').value;
+                const branch = document.getElementById('wBranchName').value;
+                const acc = document.getElementById('wAccountNo').value;
+                
+                if (!bank || !branch || !acc) return alert("Please fill all bank details!");
+                details = `Bank: ${bank} | Branch: ${branch} | Acc: ${acc}`;
+                bankMsgPart = `\n🏦 Bank: ${bank}\n📍 Branch: ${branch}\n🔢 Acc: ${acc}`;
+            }
+
+            if(confirm("Confirm Withdrawal Request?")) {
+                await addDoc(collection(db, "transactions"), { 
+                    userId: currentUser.uid, 
+                    userName: userData.name, 
+                    type: "withdraw", 
+                    amount: amount, 
+                    status: "pending", 
+                    date: new Date(), 
+                    method: method,
+                    details: details 
+                });
+
+                const msg = `🔔 *New Withdrawal Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${amount}\n📂 Method: ${method.toUpperCase()}${bankMsgPart}\n\nPlease check Admin Panel.`;
+                window.open(`https://wa.me/94726284277?text=${encodeURIComponent(msg)}`, '_blank');
+
+                alert("Withdrawal Requested!");
+                // Clear inputs
+                document.getElementById('wAmount').value = "";
+                document.getElementById('wBankName').value = "";
+                document.getElementById('wBranchName').value = "";
+                document.getElementById('wAccountNo').value = "";
+            }
+        };
+
         window.openGoalManager = () => { document.getElementById('goalModal').classList.remove('hidden'); renderGoals(); };
         function renderGoals() {
             const list = document.getElementById('goalsList'); list.innerHTML = "";
@@ -423,7 +478,6 @@
             ctx.font = '40px sans-serif'; ctx.fillStyle = '#eab308'; ctx.fillText(u.name.toUpperCase(), 60, 520);
             const dataUrl = canvas.toDataURL("image/png"); document.getElementById('cardImage').src = dataUrl; document.getElementById('downloadLink').href = dataUrl; document.getElementById('downloadLink').download = `CNV_Card.png`; document.getElementById('cardModal').classList.remove('hidden');
         };
-        window.requestWithdraw = async () => { await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "withdraw", amount: 0, status: "pending", date: new Date(), details: "Active Goal Withdrawal" }); alert("Withdrawal Requested!"); };
     </script>
 </body>
 </html>
