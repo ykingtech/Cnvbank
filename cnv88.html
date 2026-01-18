@@ -9,275 +9,183 @@
 </head>
 <body class="bg-gray-900 text-white p-4">
 
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         <header class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-            <h1 class="text-2xl font-bold text-yellow-400">👑 CNV ADMIN</h1>
-            <button onclick="location.reload()" class="text-sm text-gray-400 hover:text-white">Refresh</button>
+            <div><h1 class="text-3xl font-bold text-yellow-400">👑 CNV ADMIN</h1><p class="text-xs text-gray-400">Super Saver Management</p></div>
+            <button onclick="location.reload()" class="text-sm bg-gray-800 px-3 py-1 rounded hover:bg-gray-700">Refresh</button>
         </header>
 
-        <div class="flex gap-2 mb-6">
-            <button onclick="switchTab('users')" id="btn-users" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold transition">
-                💰 Collect Money (Users)
-            </button>
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button onclick="switchTab('users')" id="btn-users" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold">Users</button>
             <button onclick="switchTab('withdraw')" id="btn-withdraw" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold transition relative">
-                📤 Withdraw Requests
-                <span id="reqCount" class="absolute top-0 right-0 -mt-2 -mr-2 bg-red-600 text-xs rounded-full h-6 w-6 flex items-center justify-center hidden">0</span>
+                Withdrawals <span id="withCount" class="hidden absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full border border-gray-900 animate-pulse">0</span>
+            </button>
+            <button onclick="switchTab('loans')" id="btn-loans" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold transition relative">
+                Loans <span id="loanCount" class="hidden absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full border border-gray-900 animate-pulse">0</span>
             </button>
         </div>
 
         <div id="view-users">
-            <h2 class="text-lg font-bold mb-4 text-gray-300">All Active Users</h2>
-            <div id="usersList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <p class="text-gray-500">Loading users...</p>
-            </div>
+            <input type="text" id="userSearch" placeholder="Search..." class="bg-gray-800 border p-2 rounded w-full mb-4 text-white" onkeyup="filterUsers()">
+            <div id="usersList" class="grid grid-cols-1 md:grid-cols-2 gap-4"><p>Loading...</p></div>
         </div>
+        <div id="view-withdraw" class="hidden"><div id="withdrawList" class="space-y-4"></div></div>
+        <div id="view-loans" class="hidden"><div id="loanList" class="space-y-4"></div></div>
+    </div>
 
-        <div id="view-withdraw" class="hidden">
-            <h2 class="text-lg font-bold mb-4 text-gray-300">Pending Withdrawals (අනුමත කිරීමට ඇති)</h2>
-            <div id="withdrawList" class="space-y-4">
-                <p class="text-gray-500">No pending requests.</p>
-            </div>
+    <div id="moneyModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 p-6 rounded-xl w-full max-w-sm border border-green-500">
+            <h3 class="text-xl font-bold mb-2">💰 Deposit Money</h3>
+            <p class="text-gray-400 text-sm mb-4">User: <span id="modalUserName" class="text-white font-bold"></span></p>
+            <label class="text-xs text-gray-400">Select Goal:</label>
+            <select id="goalSelector" class="w-full p-3 bg-gray-700 border border-gray-600 rounded mb-4 text-white mt-1"></select>
+            <input type="number" id="addAmount" placeholder="Amount (Rs)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded mb-4 text-white font-bold text-lg">
+            <button onclick="confirmAddMoney()" class="w-full bg-green-600 hover:bg-green-500 p-3 rounded font-bold">Confirm Deposit & Bonus 🎰</button>
+            <button onclick="closeModal('moneyModal')" class="w-full mt-3 text-gray-500 text-sm">Cancel</button>
         </div>
     </div>
 
-    <div id="moneyModal" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-800 p-6 rounded-xl w-full max-w-sm border border-green-500">
-            <h3 class="text-xl font-bold mb-2">💰 Collect Daily Cash</h3>
-            <p class="text-gray-400 text-sm mb-4">User: <span id="modalUserName" class="text-white font-bold"></span></p>
-            <input type="number" id="addAmount" placeholder="Amount (Rs)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded mb-4 text-white font-bold text-lg">
-            <button onclick="confirmAddMoney()" class="w-full bg-green-600 hover:bg-green-500 p-3 rounded font-bold">Confirm Deposit & Update Streak 🔥</button>
-            <button onclick="closeModal()" class="w-full mt-3 text-gray-500 text-sm">Cancel</button>
+    <div id="debtModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 p-6 rounded-xl w-full max-w-sm border border-red-500">
+            <h3 class="text-xl font-bold mb-2">💸 Pay Debt</h3>
+            <p class="text-gray-400 text-sm mb-2">User: <span id="debtUserName" class="text-white font-bold"></span></p>
+            <p class="text-red-400 text-sm mb-4">Debt: Rs. <span id="currentDebtDisplay">0</span></p>
+            <input type="number" id="debtPayAmount" placeholder="Amount (Rs)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded mb-4 text-white font-bold text-lg">
+            <button onclick="confirmSettleDebt()" class="w-full bg-blue-600 hover:bg-blue-500 p-3 rounded font-bold">Confirm Payment ✅</button>
+            <button onclick="closeModal('debtModal')" class="w-full mt-3 text-gray-500 text-sm">Cancel</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, increment, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, increment, addDoc, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // FIREBASE CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk",
-            authDomain: "cnvbankbyuandy.firebaseapp.com",
-            projectId: "cnvbankbyuandy",
-            storageBucket: "cnvbankbyuandy.firebasestorage.app",
-            messagingSenderId: "654524804107",
-            appId: "1:654524804107:web:839811f4eb33b914786b0e",
-            measurementId: "G-PWWVKS8EEM"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const firebaseConfig = { apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk", authDomain: "cnvbankbyuandy.firebaseapp.com", projectId: "cnvbankbyuandy", storageBucket: "cnvbankbyuandy.firebasestorage.app", messagingSenderId: "654524804107", appId: "1:654524804107:web:839811f4eb33b914786b0e" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
         
-        let selectedUserId = null;
-        let selectedUserName = null;
+        let selUid, selName, userGoals = [], selectedUserId, selectedUserName, selectedUserDebt;
 
-        // --- TAB SWITCHING ---
         window.switchTab = (tab) => {
-            document.getElementById('view-users').classList.add('hidden');
-            document.getElementById('view-withdraw').classList.add('hidden');
-            document.getElementById('btn-users').className = "flex-1 py-3 rounded-lg font-bold transition " + (tab === 'users' ? 'bg-blue-600' : 'bg-gray-700');
-            document.getElementById('btn-withdraw').className = "flex-1 py-3 rounded-lg font-bold transition relative " + (tab === 'withdraw' ? 'bg-red-600' : 'bg-gray-700');
-            
-            document.getElementById('view-' + tab).classList.remove('hidden');
+            ['users', 'withdraw', 'loans'].forEach(t => { document.getElementById('view-' + t).classList.add('hidden'); document.getElementById('btn-' + t).className = "flex-1 py-3 rounded-lg font-bold bg-gray-700 text-gray-300"; });
+            document.getElementById('view-' + tab).classList.remove('hidden'); document.getElementById('btn-' + tab).className = "flex-1 py-3 rounded-lg font-bold bg-blue-600 text-white";
         };
 
-        // --- 1. LOAD USERS (Updated with Edit/Reset) ---
         onSnapshot(collection(db, "users"), (snap) => {
-            const list = document.getElementById('usersList');
-            list.innerHTML = "";
+            const list = document.getElementById('usersList'); list.innerHTML = "";
             snap.forEach(docSnap => {
-                const u = docSnap.data();
-                const uid = docSnap.id;
-                // Progress Bar for Admin View
-                const pct = u.target ? Math.min((u.balance / u.target) * 100, 100).toFixed(0) : 0;
-                
-                list.innerHTML += `
-                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-blue-500 transition">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <p class="font-bold text-lg">${u.name}</p>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs bg-orange-900 text-orange-300 px-1 rounded">🔥 ${u.streak || 0}</span>
-                                    <span class="text-xs text-gray-400">Target: Rs.${u.target}</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-bold text-xl text-green-400">Rs. ${u.balance}</p>
-                                <p class="text-xs text-blue-300">${pct}% Done</p>
-                            </div>
-                        </div>
-                        <div class="w-full bg-gray-700 h-1.5 rounded-full mb-3">
-                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
-                        </div>
-                        
-                        <div class="space-y-2">
-                            <button onclick="openAddMoney('${uid}', '${u.name}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-bold text-sm">
-                                + Add Money
-                            </button>
-                            <div class="flex gap-2">
-                                <button onclick="editTarget('${uid}', ${u.target})" class="flex-1 bg-gray-700 hover:bg-gray-600 text-yellow-400 py-2 rounded font-bold text-xs border border-gray-600">
-                                    🎯 Edit Goal
-                                </button>
-                                <button onclick="resetUser('${uid}', '${u.name}')" class="flex-1 bg-red-900/30 hover:bg-red-900/50 text-red-400 py-2 rounded font-bold text-xs border border-red-900">
-                                    ⚠️ Reset
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const u = docSnap.data(); const uid = docSnap.id;
+                const goals = u.goals || [{name:"Main", target:100000, saved: u.balance || 0}];
+                let totalSaved = 0; goals.forEach(g => totalSaved += (g.saved || 0));
+                let debtHtml = u.debt > 0 ? `<div class="mt-3 bg-red-900/30 border border-red-500/50 p-2 rounded flex justify-between items-center"><span class="text-xs text-red-300 font-bold">⚠️ Debt: Rs.${u.debt}</span><button onclick="openDebtModal('${uid}', '${u.name}', ${u.debt})" class="bg-red-600 text-[10px] px-3 py-1.5 rounded font-bold hover:bg-red-500 text-white">Pay Back</button></div>` : '';
+                list.innerHTML += `<div class="user-card bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-blue-500 transition shadow-lg"><div class="flex justify-between items-start mb-2"><div><p class="font-bold text-lg text-white">${u.name}</p><p class="text-xs text-gray-400">Spins: ${u.availableSpins||0}</p></div><div class="text-right"><p class="font-bold text-xl text-green-400">Rs. ${totalSaved.toFixed(2)}</p><p class="text-xs text-gray-500">Total Saved</p></div></div><button onclick="openAdd('${uid}', '${u.name}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-bold text-sm mt-2 shadow">+ Deposit</button>${debtHtml}</div>`;
             });
         });
 
-        // --- 2. LOAD WITHDRAW REQUESTS ---
-        const qReq = query(collection(db, "transactions"), where("status", "==", "pending"), where("type", "==", "withdraw"));
-        
-        onSnapshot(qReq, (snap) => {
-            const list = document.getElementById('withdrawList');
-            const countBadge = document.getElementById('reqCount');
-            
-            list.innerHTML = "";
-            
-            if(snap.empty) {
-                list.innerHTML = "<p class='text-gray-500 text-center py-10'>No pending withdrawal requests. ✅</p>";
-                countBadge.classList.add('hidden');
-            } else {
-                countBadge.innerText = snap.size;
-                countBadge.classList.remove('hidden');
-            }
-
-            snap.forEach(docSnap => {
-                const t = docSnap.data();
-                const isBank = t.method === 'bank';
-                
-                list.innerHTML += `
-                    <div class="bg-gray-800 p-5 rounded-xl border-l-4 border-red-500 shadow-lg">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-lg text-white">${t.userName}</h3>
-                                <p class="text-xs text-gray-400">${new Date(t.date.seconds * 1000).toLocaleString()}</p>
-                            </div>
-                            <h2 class="text-2xl font-bold text-red-400">Rs. ${t.amount}</h2>
-                        </div>
-
-                        <div class="mt-3 bg-gray-900 p-3 rounded text-sm">
-                            <p class="text-gray-400 uppercase text-xs font-bold mb-1">Withdraw Method:</p>
-                            <p class="text-white font-bold flex items-center gap-2">
-                                ${isBank ? '🏦 Bank Transfer' : '💵 Cash Handover'}
-                            </p>
-                            <p class="text-yellow-300 mt-1 font-mono">${t.details}</p>
-                        </div>
-
-                        <button onclick="approveWithdraw('${docSnap.id}', '${t.userId}', ${t.amount})" 
-                            class="w-full mt-4 bg-green-600 hover:bg-green-500 text-white py-3 rounded font-bold text-sm shadow-lg transition transform active:scale-95">
-                            ✅ Approve & Deduct Balance
-                        </button>
-                    </div>
-                `;
-            });
-        });
-
-        // --- FUNCTIONS ---
-
-        // NEW: EDIT TARGET
-        window.editTarget = async (uid, currentTarget) => {
-            const newTarget = prompt("Enter new target amount:", currentTarget);
-            if(newTarget && !isNaN(newTarget)) {
-                try {
-                    await updateDoc(doc(db, "users", uid), {
-                        target: parseFloat(newTarget)
-                    });
-                } catch(e) {
-                    alert("Error updating target: " + e.message);
-                }
-            }
-        };
-
-        // NEW: RESET USER
-        window.resetUser = async (uid, name) => {
-            if(confirm(`⚠️ WARNING: Are you sure you want to RESET ${name}?\n\nThis will set Balance to 0 and Streak to 0.`)) {
-                try {
-                    await updateDoc(doc(db, "users", uid), {
-                        balance: 0,
-                        streak: 0,
-                        lastDepositDate: null
-                    });
-                    // Optional: Add a 'reset' transaction log if needed
-                } catch(e) {
-                    alert("Error resetting user: " + e.message);
-                }
-            }
-        };
-
-        // Approve Withdrawal
-        window.approveWithdraw = async (txId, uid, amount) => {
-            if(!confirm(`Are you sure you want to approve this withdrawal of Rs. ${amount}?`)) return;
-
-            try {
-                await updateDoc(doc(db, "transactions", txId), { status: "success" });
-                await updateDoc(doc(db, "users", uid), { 
-                    balance: increment(-amount) 
-                });
-                alert("Withdrawal Approved! Balance Updated.");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        // Add Money Modal
-        window.openAddMoney = (uid, name) => {
-            selectedUserId = uid;
-            selectedUserName = name;
-            document.getElementById('modalUserName').innerText = name;
+        window.openAdd = async (uid, name) => {
+            selUid = uid; selName = name; document.getElementById('modalUserName').innerText = name;
+            const snap = await getDoc(doc(db, "users", uid));
+            userGoals = snap.data().goals || [{name:"Main Goal", target:100000, saved: snap.data().balance || 0}];
+            const select = document.getElementById('goalSelector'); select.innerHTML = "";
+            userGoals.forEach((g, index) => { const option = document.createElement("option"); option.value = index; option.text = `🎯 ${g.name} (Rs.${g.saved||0})`; select.appendChild(option); });
             document.getElementById('moneyModal').classList.remove('hidden');
         };
 
-        window.closeModal = () => {
-            document.getElementById('moneyModal').classList.add('hidden');
-            document.getElementById('addAmount').value = "";
-        };
-
+        // --- UPDATED: DEPOSIT LOGIC WITH 0.5% BONUS ---
         window.confirmAddMoney = async () => {
             const amount = parseFloat(document.getElementById('addAmount').value);
+            const goalIndex = document.getElementById('goalSelector').value;
             if(!amount) return alert("Enter amount");
 
-            const userRef = doc(db, "users", selectedUserId);
-            const userSnap = await getDoc(userRef);
-            const userData = userSnap.data();
-            
-            let newStreak = userData.streak || 0;
-            const lastDate = userData.lastDepositDate ? userData.lastDepositDate.toDate() : null;
-            const today = new Date();
+            // Calculate current total balance first to check for 10k threshold
+            let currentTotal = 0; userGoals.forEach(g => currentTotal += (g.saved || 0));
 
-            if (lastDate) {
-                const d1 = new Date(lastDate.setHours(0,0,0,0));
-                const d2 = new Date(today.setHours(0,0,0,0));
-                const diffDays = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24));
-
-                if (diffDays === 1) newStreak++; 
-                else if (diffDays > 1) newStreak = 1; 
-            } else {
-                newStreak = 1;
+            // Bonus Calculation: If balance > 10,000, give Rs. 5 per 1000 (0.5%)
+            let bonusAmount = 0;
+            if (currentTotal > 10000) {
+                bonusAmount = amount * 0.005; // 0.5%
             }
 
-            await updateDoc(userRef, {
-                balance: increment(amount),
-                streak: newStreak,
-                lastDepositDate: new Date()
-            });
+            const totalDeposit = amount + bonusAmount;
 
-            await addDoc(collection(db, "transactions"), {
-                userId: selectedUserId,
-                userName: selectedUserName,
-                type: "deposit",
-                amount: amount,
-                date: new Date(),
-                method: "Admin Collected",
-                status: "success"
-            });
+            if(!userGoals[goalIndex].saved) userGoals[goalIndex].saved = 0; 
+            userGoals[goalIndex].saved += totalDeposit;
+            
+            // Recalculate new total
+            let newTotal = 0; userGoals.forEach(g => newTotal += (g.saved || 0));
 
-            alert(`Collected Rs.${amount} from ${selectedUserName}!`);
-            closeModal();
+            const spinsToAdd = Math.floor(amount / 1000);
+
+            // Streak Logic
+            const uRef = doc(db, "users", selUid);
+            const uSnap = await getDoc(uRef);
+            const u = uSnap.data();
+            let str = u.streak || 0;
+            const last = u.lastDepositDate ? u.lastDepositDate.toDate() : null;
+            const today = new Date(); today.setHours(0,0,0,0);
+            let lastDate = new Date(0); if(last) { lastDate = new Date(last); lastDate.setHours(0,0,0,0); }
+            const diffTime = Math.abs(today - lastDate); const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) str++; else if (diffDays > 1) str = 1;
+
+            await updateDoc(doc(db, "users", selUid), { 
+                goals: userGoals, balance: newTotal, streak: str, lastDepositDate: new Date(),
+                availableSpins: increment(spinsToAdd) 
+            });
+            await addDoc(collection(db, "transactions"), { userId: selUid, userName: selName, type: "deposit", amount, details: `To: ${userGoals[goalIndex].name} (Bonus: ${bonusAmount})`, date: new Date(), status: "success", method: "Admin" });
+            
+            closeModal('moneyModal'); document.getElementById('addAmount').value = "";
+            let msg = `Deposited! ${spinsToAdd} Spins Added.`;
+            if(bonusAmount > 0) msg += ` + Rs. ${bonusAmount} Bonus Added!`;
+            alert(msg);
         };
+
+        window.openDebtModal = (uid, name, debt) => { selectedUserId = uid; selectedUserName = name; selectedUserDebt = debt; document.getElementById('debtUserName').innerText = name; document.getElementById('currentDebtDisplay').innerText = debt; document.getElementById('debtModal').classList.remove('hidden'); };
+        window.confirmSettleDebt = async () => {
+            const amount = parseFloat(document.getElementById('debtPayAmount').value);
+            if(!amount || amount > selectedUserDebt) return alert("Invalid amount");
+            await updateDoc(doc(db, "users", selectedUserId), { debt: increment(-amount) });
+            await addDoc(collection(db, "transactions"), { userId: selectedUserId, userName: selectedUserName, type: "debt_payment", amount, date: new Date(), status: "success", method: "Admin Collected" });
+            closeModal('debtModal'); document.getElementById('debtPayAmount').value = ""; alert("Paid!");
+        };
+
+        window.approveWithdraw = async (txId, uid, amount, targetGoalName) => {
+            if(!confirm("Approve?")) return;
+            const uRef = doc(db, "users", uid);
+            const uSnap = await getDoc(uRef);
+            let goals = uSnap.data().goals || [];
+            let goalIdx = -1;
+            if(targetGoalName) goalIdx = goals.findIndex(g => g.name === targetGoalName);
+            if(goalIdx === -1) goalIdx = goals.findIndex(g => g.saved >= amount);
+            if(goalIdx === -1) return alert("Error: Insufficient Goal Balance");
+            goals[goalIdx].saved -= amount;
+            let totalBal = 0; goals.forEach(g => totalBal += (g.saved || 0));
+            await updateDoc(doc(db,"transactions",txId), { status: "success" });
+            await updateDoc(uRef, { goals: goals, balance: totalBal }); 
+            alert("Approved!");
+        };
+
+        window.approveLoan = async (txId, uid, amount) => { if(!confirm("Approve?")) return; await updateDoc(doc(db,"transactions",txId), { status: "success" }); await updateDoc(doc(db,"users",uid), { debt: increment(amount) }); alert("Loan Approved!"); };
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        
+        onSnapshot(query(collection(db, "transactions"), where("status","==","pending"), where("type","==","loan_request")), (snap) => {
+            const list = document.getElementById('loanList'); 
+            const count = document.getElementById('loanCount');
+            count.innerText = snap.size; if(snap.size > 0) count.classList.remove('hidden'); else count.classList.add('hidden');
+            list.innerHTML = snap.empty ? "<p class='text-gray-500'>No loans</p>" : "";
+            snap.forEach(d => { const t = d.data(); list.innerHTML += `<div class="bg-gray-800 p-4 rounded border-l-4 border-orange-500 shadow"><div class="flex justify-between"><h3>${t.userName}</h3><span class="text-orange-400 font-bold">Rs.${t.amount}</span></div><p class="text-xs text-gray-400">1% Fee Paid</p><button onclick="approveLoan('${d.id}','${t.userId}',${t.amount})" class="w-full mt-2 bg-green-600 py-1 rounded">Accept</button></div>`; });
+        });
+        
+        onSnapshot(query(collection(db, "transactions"), where("status","==","pending"), where("type","==","withdraw")), (snap) => {
+            const list = document.getElementById('withdrawList');
+            const count = document.getElementById('withCount');
+            count.innerText = snap.size; if(snap.size > 0) count.classList.remove('hidden'); else count.classList.add('hidden');
+            list.innerHTML = snap.empty ? "<p class='text-gray-500'>No withdrawals</p>" : "";
+            snap.forEach(d => { 
+                const t = d.data(); const goalParam = t.targetGoal ? `'${t.targetGoal}'` : 'null';
+                list.innerHTML += `<div class="bg-gray-800 p-4 rounded border-l-4 border-red-500 shadow"><div class="flex justify-between"><h3>${t.userName}</h3><span class="text-red-400 font-bold">Rs.${t.amount}</span></div><p class="text-xs text-gray-400">${t.targetGoal || 'Unknown Goal'}</p><button onclick="approveWithdraw('${d.id}','${t.userId}',${t.amount}, ${goalParam})" class="w-full mt-2 bg-red-600 py-1 rounded">Approve</button></div>`; 
+            });
+        });
+
+        window.filterUsers = () => { const term = document.getElementById('userSearch').value.toLowerCase(); document.querySelectorAll('.user-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
     </script>
 </body>
 </html>
