@@ -17,15 +17,15 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
         body { font-family: 'Noto Sans Sinhala', sans-serif; background: #0f172a; color: white; user-select: none; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .tree-container { transition: all 1s ease-in-out; }
         .wheel { transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
-        
-        /* --- CREATIVE LOADING ANIMATION --- */
+        /* Loader */
         .loader-container { position: fixed; inset: 0; background: #0f172a; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .bouncing-tree { font-size: 4rem; animation: bounce 1.5s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        .shadow-pulse { width: 50px; height: 10px; background: rgba(0,0,0,0.3); border-radius: 50%; animation: shadow 1.5s infinite; margin-top: 5px; }
-        @keyframes shadow { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(0.8); opacity: 0.2; } }
         .loading-text { margin-top: 20px; color: #eab308; font-weight: bold; letter-spacing: 2px; animation: pulse 2s infinite; }
+        @keyframes grow { 0% { transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .grow-anim { animation: grow 2s infinite ease-in-out; }
     </style>
 </head>
 <body class="min-h-screen pb-24">
@@ -37,13 +37,7 @@
 
     <div id="loadingView" class="loader-container">
         <div class="bouncing-tree">🌱</div>
-        <div class="shadow-pulse"></div>
         <h2 class="loading-text">CNV BANK...</h2>
-        <div class="flex gap-2 mt-4">
-            <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0s"></div>
-            <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-            <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-        </div>
     </div>
 
     <div id="loginView" class="hidden flex flex-col justify-center items-center min-h-screen p-4">
@@ -81,12 +75,11 @@
                 <span>🎯</span> <span id="currentGoalName" class="font-bold text-yellow-400">Main Goal</span> <span>▼</span>
             </div>
             <div class="my-4 relative z-10 flex justify-center items-center h-32">
-                <div id="treeIcon" class="text-9xl drop-shadow-2xl">🌱</div>
+                <div id="treeIcon" class="text-9xl drop-shadow-2xl tree-container">🌱</div>
             </div>
             <p class="text-xs text-gray-400 uppercase tracking-widest relative z-10">Saved for this Goal</p>
             <h1 class="text-4xl font-bold text-white relative z-10 mt-1">Rs. <span id="balanceDisplay">0.00</span></h1>
             <p class="text-xs text-gray-500 mt-1 relative z-10">Target: Rs. <span id="targetDisplay">0</span></p>
-            
             <div id="debtDisplayBox" class="hidden mt-3 bg-red-900/40 border border-red-500/50 p-2 rounded-lg inline-block px-4">
                 <p class="text-xs text-red-300 font-bold flex items-center gap-2"><span>⚠️</span> Current Debt: Rs. <span id="debtAmount">0</span></p>
             </div>
@@ -99,11 +92,7 @@
         <div class="glass p-4 rounded-2xl mb-4">
             <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Target Progress</span><span id="targetPercentText">0%</span></div>
             <div class="w-full bg-gray-700 rounded-full h-2 mb-3"><div id="targetBar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div></div>
-            
-            <div class="flex justify-between text-xs text-gray-400 mb-1">
-                <span>Interest Unlock (10k)</span>
-                <span id="interestStatus" class="text-[10px]">LOCKED 🔒</span>
-            </div>
+            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Interest Unlock (10k)</span><span id="interestStatus" class="text-[10px]">LOCKED 🔒</span></div>
             <div class="w-full bg-gray-700 rounded-full h-2"><div id="moneyBar" class="bg-yellow-600 h-2 rounded-full" style="width: 0%"></div></div>
         </div>
 
@@ -125,12 +114,8 @@
                 <div class="mb-3">
                     <label class="text-xs text-gray-400 block mb-1">Method:</label>
                     <div class="flex gap-2">
-                        <label class="flex-1 cursor-pointer bg-gray-700 p-2 rounded text-center text-xs hover:bg-gray-600">
-                            <input type="radio" name="wType" value="cash" checked onclick="toggleWithdrawMethod()" class="mr-1"> Cash 💵
-                        </label>
-                        <label class="flex-1 cursor-pointer bg-gray-700 p-2 rounded text-center text-xs hover:bg-gray-600">
-                            <input type="radio" name="wType" value="bank" onclick="toggleWithdrawMethod()" class="mr-1"> Bank 🏦
-                        </label>
+                        <label class="flex-1 cursor-pointer bg-gray-700 p-2 rounded text-center text-xs hover:bg-gray-600"><input type="radio" name="wType" value="cash" checked onclick="toggleWithdrawMethod()" class="mr-1"> Cash 💵</label>
+                        <label class="flex-1 cursor-pointer bg-gray-700 p-2 rounded text-center text-xs hover:bg-gray-600"><input type="radio" name="wType" value="bank" onclick="toggleWithdrawMethod()" class="mr-1"> Bank 🏦</label>
                     </div>
                 </div>
                 <div id="bankDetailsSection" class="hidden mb-3 space-y-2 bg-gray-800 p-2 rounded border border-gray-600">
@@ -153,10 +138,10 @@
             <div class="relative w-64 h-64 mx-auto mb-6">
                 <div id="theWheel" class="wheel w-full h-full rounded-full border-4 border-yellow-500 relative shadow-2xl" 
                      style="background: conic-gradient(#ef4444 0deg 90deg, #3b82f6 90deg 180deg, #22c55e 180deg 270deg, #eab308 270deg 360deg);">
-                     <span class="absolute top-10 left-10 text-white font-bold -rotate-45">Rs.20</span>
-                     <span class="absolute top-10 right-10 text-white font-bold rotate-45">Rs.50</span>
-                     <span class="absolute bottom-10 right-10 text-white font-bold rotate-[135deg]">Rs.100</span>
-                     <span class="absolute bottom-10 left-10 text-white font-bold rotate-[225deg]">Rs.200</span>
+                     <span class="absolute top-10 left-10 text-white font-bold transform -rotate-45">Rs.20</span>
+                     <span class="absolute top-10 right-10 text-white font-bold transform rotate-45">Rs.50</span>
+                     <span class="absolute bottom-10 right-10 text-white font-bold transform rotate-[135deg]">Rs.100</span>
+                     <span class="absolute bottom-10 left-10 text-white font-bold transform rotate-[225deg]">Rs.200</span>
                 </div>
                 <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 text-3xl text-white">▼</div>
             </div>
@@ -169,7 +154,7 @@
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-blue-500">
             <h2 class="text-xl font-bold text-blue-400 mb-2">💸 Instant Loan Request</h2>
             <p class="text-gray-400 text-xs mb-4">Up to 50% of TOTAL savings.</p>
-            <p class="text-red-400 text-xs mb-4 font-bold">⚠️ Fee: 1% of Loan Amount will be deducted.</p>
+            <p class="text-red-400 text-xs mb-4 font-bold">⚠️ Fee: 1% of Loan Amount will be deducted from your Balance.</p>
             <div class="bg-gray-900 p-3 rounded-lg mb-4">
                 <div class="flex justify-between text-sm text-gray-300"><span>Total Savings:</span><span id="loanBaseBalance">Rs. 0</span></div>
                 <div class="flex justify-between text-sm text-green-400 font-bold mt-1"><span>Max Loan:</span><span id="maxLoanAmt">Rs. 0</span></div>
@@ -187,7 +172,7 @@
             <h2 class="text-xl font-bold text-white mb-4">🎯 Your Goals</h2>
             <div id="goalsList" class="space-y-2 mb-4 max-h-40 overflow-y-auto"></div>
             <div class="border-t border-gray-700 pt-4">
-                <input type="text" id="newGoalName" placeholder="Goal Name" class="w-full p-2 bg-gray-700 rounded mb-2 text-sm text-white">
+                <input type="text" id="newGoalName" placeholder="Goal Name (e.g. Wedding)" class="w-full p-2 bg-gray-700 rounded mb-2 text-sm text-white">
                 <input type="number" id="newGoalAmount" placeholder="Target (Rs)" class="w-full p-2 bg-gray-700 rounded mb-2 text-sm text-white">
                 <button onclick="addNewGoal()" class="w-full bg-green-600 text-white text-sm py-2 rounded font-bold">+ Add Goal</button>
             </div>
@@ -199,11 +184,11 @@
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-gray-600">
             <h2 class="text-xl font-bold text-yellow-400 mb-4">📜 Terms & Conditions</h2>
             <div class="h-64 overflow-y-auto text-sm text-gray-300 space-y-3 pr-2">
-                <p><strong>1. Savings & Goals:</strong> Withdraw money without penalty only after reaching 100% of Target.</p>
-                <p><strong>2. Interest (10k Club):</strong> Daily interest of 0.05% applied if balance > Rs. 10,000.</p>
-                <p><strong>3. Instant Loans:</strong> Max 50% of savings. 1% Fee deducted instantly.</p>
-                <p><strong>4. Lucky Spins:</strong> Earn 1 Spin for every Rs. 1000 deposited.</p>
-                <p><strong>5. Debt:</strong> Must clear Debt before full withdrawal.</p>
+                <p><strong>1. Savings & Goals:</strong> You must reach 100% of your Goal Target to withdraw money without penalty.</p>
+                <p><strong>2. Interest (10k Club):</strong> Daily interest of 0.05% is added ONLY if your total balance exceeds Rs. 10,000.</p>
+                <p><strong>3. Instant Loans:</strong> You can request up to 50% of your total savings. A <strong>1% Fee</strong> will be deducted from your current balance immediately.</p>
+                <p><strong>4. Lucky Spins:</strong> You earn 1 Spin for every Rs. 1000 deposited. Spins guarantee cash prizes added to your goal.</p>
+                <p><strong>5. Debt:</strong> Any loan taken is recorded as Debt. You must clear Debt before full withdrawal.</p>
             </div>
             <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-full mt-4 bg-gray-700 py-2 rounded font-bold">Close</button>
         </div>
@@ -236,9 +221,7 @@
         window.logout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, async (user) => {
-            // HIDE LOADING SCREEN ON AUTH CHANGE
             document.getElementById('loadingView').classList.add('hidden');
-            
             if (user) {
                 currentUser = user;
                 const userRef = doc(db, "users", user.uid);
@@ -316,10 +299,8 @@
                 badge.innerText = `${spinCount} Spins`;
                 if(spinCount > 0) {
                     badge.classList.replace('text-purple-600', 'text-green-600');
-                    document.getElementById('spinTimerText').innerText = "Spins Available! 🎰";
                 } else {
                     badge.classList.replace('text-green-600', 'text-purple-600');
-                    document.getElementById('spinTimerText').innerText = "Deposit 1000 to get Spin";
                 }
             });
         }
@@ -420,7 +401,6 @@
             }
         };
 
-        // --- WITHDRAWAL TOGGLE ---
         window.toggleWithdrawMethod = () => {
             const method = document.querySelector('input[name="wType"]:checked').value;
             const bankDiv = document.getElementById('bankDetailsSection');
@@ -431,6 +411,9 @@
         window.requestWithdraw = async () => {
             const amount = parseFloat(document.getElementById('wAmount').value);
             if (!amount || amount <= 0) return alert("Enter a valid amount!");
+
+            // Send Current Goal Name to Admin
+            const currentGoalName = userData.goals[userData.activeGoalIndex || 0].name;
 
             const method = document.querySelector('input[name="wType"]:checked').value;
             let details = "Cash Withdrawal";
@@ -454,10 +437,11 @@
                     status: "pending", 
                     date: new Date(), 
                     method: method,
-                    details: details 
+                    details: details,
+                    targetGoal: currentGoalName // Sending Goal Name!
                 });
 
-                const msg = `🔔 *New Withdrawal Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${amount}\n📂 Method: ${method.toUpperCase()}${bankMsgPart}\n\nPlease check Admin Panel.`;
+                const msg = `🔔 *New Withdrawal Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${amount}\n🎯 From Goal: ${currentGoalName}\n📂 Method: ${method.toUpperCase()}${bankMsgPart}\n\nPlease check Admin Panel.`;
                 window.open(`https://wa.me/94726284277?text=${encodeURIComponent(msg)}`, '_blank');
 
                 alert("Withdrawal Requested!");
