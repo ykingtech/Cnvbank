@@ -33,9 +33,10 @@
     <div id="loginView" class="flex flex-col justify-center items-center min-h-screen p-4">
         <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">CNV BANK 🏆</h1>
         <p class="text-gray-400 mb-8 text-center">Save Smart. Win Big.</p>
-        <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 hover:scale-105 transition">
+        <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 hover:scale-105 transition mb-4">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6"> Google Login
         </button>
+        <button onclick="document.getElementById('termsModal').classList.remove('hidden')" class="text-xs text-gray-500 underline">Read Terms & Conditions</button>
     </div>
 
     <div id="dashboardView" class="hidden p-4 max-w-md mx-auto">
@@ -47,7 +48,7 @@
                     <span class="bg-blue-900/50 px-2 py-1 rounded text-xs text-blue-400 border border-blue-500/30">🏆 <span id="userLevel">Bronze</span></span>
                 </div>
             </div>
-            <img id="userImg" src="" class="w-12 h-12 rounded-full border-2 border-yellow-500">
+            <img id="userImg" src="" class="w-12 h-12 rounded-full border-2 border-yellow-500 cursor-pointer" onclick="document.getElementById('termsModal').classList.remove('hidden')">
         </div>
 
         <div onclick="openSpinWheel()" class="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-xl mb-4 flex justify-between items-center shadow-lg cursor-pointer transform active:scale-95 transition relative overflow-hidden">
@@ -60,19 +61,15 @@
 
         <div class="glass p-6 rounded-3xl mb-4 text-center relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-full bg-green-500/5 z-0"></div>
-            
             <div onclick="openGoalManager()" class="absolute top-3 right-3 bg-gray-800/80 p-2 px-3 rounded-full text-xs cursor-pointer hover:bg-gray-700 z-20 flex items-center gap-1 border border-yellow-500/30 shadow-lg backdrop-blur">
                 <span>🎯</span> <span id="currentGoalName" class="font-bold text-yellow-400">Main Goal</span> <span>▼</span>
             </div>
-
             <div class="my-4 relative z-10 flex justify-center items-center h-32">
                 <div id="treeIcon" class="text-9xl drop-shadow-2xl tree-container">🌱</div>
             </div>
-            
             <p class="text-xs text-gray-400 uppercase tracking-widest relative z-10">Saved for this Goal</p>
             <h1 class="text-4xl font-bold text-white relative z-10 mt-1">Rs. <span id="balanceDisplay">0.00</span></h1>
             <p class="text-xs text-gray-500 mt-1 relative z-10">Target: Rs. <span id="targetDisplay">0</span></p>
-            
             <div id="debtDisplayBox" class="hidden mt-3 bg-red-900/40 border border-red-500/50 p-2 rounded-lg inline-block px-4">
                 <p class="text-xs text-red-300 font-bold flex items-center gap-2"><span>⚠️</span> Current Debt: Rs. <span id="debtAmount">0</span></p>
             </div>
@@ -85,7 +82,11 @@
         <div class="glass p-4 rounded-2xl mb-4">
             <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Target Progress</span><span id="targetPercentText">0%</span></div>
             <div class="w-full bg-gray-700 rounded-full h-2 mb-3"><div id="targetBar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div></div>
-            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Interest Unlock (10k)</span><span id="moneyPercentText">0%</span></div>
+            
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Interest Unlock (10k)</span>
+                <span id="interestStatus" class="text-[10px]">LOCKED 🔒</span>
+            </div>
             <div class="w-full bg-gray-700 rounded-full h-2"><div id="moneyBar" class="bg-yellow-600 h-2 rounded-full" style="width: 0%"></div></div>
         </div>
 
@@ -99,7 +100,7 @@
         </div>
         
         <div class="glass p-4 rounded-2xl border-l-4 border-red-500 relative mb-20">
-            <h3 class="font-bold text-gray-200 mb-2">Withdraw (Active Goal)</h3>
+            <h3 class="font-bold text-gray-200 mb-2">Withdraw</h3>
             <div id="withdrawLock" class="absolute inset-0 bg-gray-900/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-r-2xl p-4">
                 <span class="text-xl mb-1">🔒</span><p class="text-[10px] text-gray-400">Complete Goal to Unlock</p>
             </div>
@@ -115,7 +116,6 @@
             <button onclick="document.getElementById('spinModal').classList.add('hidden')" class="absolute top-2 right-4 text-gray-400 text-xl">✕</button>
             <h2 class="text-2xl font-bold text-purple-400 mb-2">Lucky Spin 🎡</h2>
             <p id="spinsLeftText" class="text-sm text-white font-bold mb-4 bg-purple-900/50 p-2 rounded inline-block">Spins Left: 0</p>
-            
             <div class="relative w-64 h-64 mx-auto mb-6">
                 <div id="theWheel" class="wheel w-full h-full rounded-full border-4 border-yellow-500 relative shadow-2xl" 
                      style="background: conic-gradient(#ef4444 0deg 90deg, #3b82f6 90deg 180deg, #22c55e 180deg 270deg, #eab308 270deg 360deg);">
@@ -135,6 +135,7 @@
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-blue-500">
             <h2 class="text-xl font-bold text-blue-400 mb-2">💸 Instant Loan Request</h2>
             <p class="text-gray-400 text-xs mb-4">Up to 50% of TOTAL savings.</p>
+            <p class="text-red-400 text-xs mb-4 font-bold">⚠️ Fee: 1% of Loan Amount will be deducted from your Balance.</p>
             <div class="bg-gray-900 p-3 rounded-lg mb-4">
                 <div class="flex justify-between text-sm text-gray-300"><span>Total Savings:</span><span id="loanBaseBalance">Rs. 0</span></div>
                 <div class="flex justify-between text-sm text-green-400 font-bold mt-1"><span>Max Loan:</span><span id="maxLoanAmt">Rs. 0</span></div>
@@ -142,7 +143,7 @@
             <input type="number" id="loanAmountReq" placeholder="Enter Amount" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white mb-4">
             <div class="flex gap-2">
                 <button onclick="document.getElementById('loanModal').classList.add('hidden')" class="flex-1 bg-gray-600 py-2 rounded-lg">Cancel</button>
-                <button onclick="requestLoan()" class="flex-1 bg-blue-600 py-2 rounded-lg font-bold">Request via WhatsApp</button>
+                <button onclick="requestLoan()" class="flex-1 bg-blue-600 py-2 rounded-lg font-bold">Request (WhatsApp)</button>
             </div>
         </div>
     </div>
@@ -157,6 +158,20 @@
                 <button onclick="addNewGoal()" class="w-full bg-green-600 text-white text-sm py-2 rounded font-bold">+ Add Goal</button>
             </div>
             <button onclick="document.getElementById('goalModal').classList.add('hidden')" class="w-full mt-4 text-gray-500 text-xs">Close</button>
+        </div>
+    </div>
+
+    <div id="termsModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-gray-600">
+            <h2 class="text-xl font-bold text-yellow-400 mb-4">📜 Terms & Conditions</h2>
+            <div class="h-64 overflow-y-auto text-sm text-gray-300 space-y-3 pr-2">
+                <p><strong>1. Savings & Goals:</strong> You must reach 100% of your Goal Target to withdraw money without penalty.</p>
+                <p><strong>2. Interest (10k Club):</strong> Daily interest of 0.05% is added ONLY if your total balance exceeds Rs. 10,000.</p>
+                <p><strong>3. Instant Loans:</strong> You can request up to 50% of your total savings. A <strong>1% Fee</strong> will be deducted from your current balance immediately.</p>
+                <p><strong>4. Lucky Spins:</strong> You earn 1 Spin for every Rs. 1000 deposited. Spins guarantee cash prizes added to your goal.</p>
+                <p><strong>5. Debt:</strong> Any loan taken is recorded as Debt. You must clear Debt before full withdrawal.</p>
+            </div>
+            <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-full mt-4 bg-gray-700 py-2 rounded font-bold">Close</button>
         </div>
     </div>
 
@@ -196,7 +211,8 @@
                         name: user.displayName, email: user.email, photo: user.photoURL,
                         balance: 0, streak: 0, debt: 0, availableSpins: 0,
                         accountNo: "CNV"+Math.floor(1000000000+Math.random()*9000000000), 
-                        activeGoalIndex: 0, goals: [{ name: "Main Goal", target: 10000, saved: 0 }] 
+                        activeGoalIndex: 0, goals: [{ name: "Main Goal", target: 10000, saved: 0 }],
+                        lastInterestDate: null
                     });
                     location.reload();
                 } else { loadDashboard(snap.data()); }
@@ -211,10 +227,15 @@
 
             onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
                 userData = docSnap.data();
+                checkAndAddInterest(userData); // Check Interest Logic
+
                 const goals = userData.goals || [{name:"Main Goal", target:10000, saved: 0}];
                 const activeIdx = (userData.activeGoalIndex !== undefined) ? userData.activeGoalIndex : 0;
                 const currentGoal = goals[activeIdx] || goals[0];
                 const currentBalance = currentGoal.saved || 0;
+
+                // Total Balance Calculation for Global Logic
+                let totalGlobalBalance = 0; goals.forEach(g => totalGlobalBalance += (g.saved || 0));
 
                 document.getElementById('currentGoalName').innerText = currentGoal.name;
                 document.getElementById('balanceDisplay').innerText = currentBalance.toFixed(2);
@@ -226,7 +247,21 @@
                     document.getElementById('debtAmount').innerText = userData.debt;
                 } else { document.getElementById('debtDisplayBox').classList.add('hidden'); }
 
-                let level = "Bronze"; if(currentBalance > 10000) level = "Silver"; if(currentBalance > currentGoal.target) level = "Gold";
+                // Interest Status Bar
+                const moneyPct = Math.min((totalGlobalBalance / 10000) * 100, 100);
+                document.getElementById('moneyBar').style.width = `${moneyPct}%`;
+                const intStatus = document.getElementById('interestStatus');
+                if(totalGlobalBalance >= 10000) {
+                    document.getElementById('moneyBar').classList.add('bg-green-500');
+                    intStatus.innerText = "Interest Active ✅ (Daily)";
+                    intStatus.className = "text-[10px] text-green-400 font-bold";
+                } else {
+                    document.getElementById('moneyBar').classList.remove('bg-green-500');
+                    intStatus.innerText = "LOCKED 🔒 (Reach 10k)";
+                    intStatus.className = "text-[10px] text-gray-400";
+                }
+
+                let level = "Bronze"; if(totalGlobalBalance > 10000) level = "Silver"; if(currentBalance > currentGoal.target) level = "Gold";
                 document.getElementById('userLevel').innerText = level;
 
                 const pct = (currentBalance / currentGoal.target) * 100;
@@ -244,28 +279,57 @@
                     document.getElementById('withdrawForm').classList.add('hidden');
                 }
 
-                // Update Spin Badge (Based on Count)
                 const spinCount = userData.availableSpins || 0;
                 const badge = document.getElementById('spinStatusBadge');
                 badge.innerText = `${spinCount} Spins`;
-                if(spinCount > 0) badge.classList.replace('text-purple-600', 'text-green-600');
-                else badge.classList.replace('text-green-600', 'text-purple-600');
+                if(spinCount > 0) {
+                    badge.classList.replace('text-purple-600', 'text-green-600');
+                    document.getElementById('spinTimerText').innerText = "Spins Available! 🎰";
+                } else {
+                    badge.classList.replace('text-green-600', 'text-purple-600');
+                    document.getElementById('spinTimerText').innerText = "Deposit 1000 to get Spin";
+                }
             });
         }
 
-        // --- NEW: DEPOSIT REQUEST FUNCTION ---
+        // --- NEW: INTEREST LOGIC (Daily 0.05%) ---
+        async function checkAndAddInterest(u) {
+            let totalBal = 0; (u.goals || []).forEach(g => totalBal += (g.saved || 0));
+            
+            if(totalBal < 10000) return; // Only for 10k+
+
+            const lastDate = u.lastInterestDate ? u.lastInterestDate.toDate() : new Date(0);
+            const now = new Date();
+            const oneDay = 24 * 60 * 60 * 1000;
+
+            // Check if 24 hours passed since last interest
+            if(now.getTime() - lastDate.getTime() > oneDay) {
+                const interestAmount = totalBal * 0.0005; // 0.05% Daily
+                const goals = u.goals;
+                // Add interest to the first goal (Main) or spread it? Let's add to Main.
+                if(!goals[0].saved) goals[0].saved = 0;
+                goals[0].saved += interestAmount;
+
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    goals: goals,
+                    lastInterestDate: Timestamp.now(),
+                    balance: increment(interestAmount) // Keep global balance synced
+                });
+                
+                // Optional: Notify via alert or log
+                console.log(`Interest Added: Rs. ${interestAmount}`);
+            }
+        }
+
         window.requestDeposit = async () => {
-            const amount = prompt("Enter amount to deposit (Rs):");
+            const amount = prompt("Enter Amount to Deposit (Rs):");
             if(amount && !isNaN(amount) && parseFloat(amount) > 0) {
                 const req = parseFloat(amount);
-                const msg = `🔔 *New Deposit Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${req}\n\nPlease check Admin Panel to approve.`;
+                const msg = `🔔 *New Deposit Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${req}\n\nPlease collect & approve in Admin.`;
                 window.open(`https://wa.me/94726284277?text=${encodeURIComponent(msg)}`, '_blank');
-            } else if (amount) {
-                alert("Invalid Amount!");
-            }
+            } else if (amount) { alert("Invalid Amount!"); }
         };
 
-        // --- SPIN LOGIC (COUNT BASED) ---
         window.openSpinWheel = () => {
             const spins = userData.availableSpins || 0;
             document.getElementById('spinsLeftText').innerText = `Spins Left: ${spins}`;
@@ -293,8 +357,7 @@
                 if(!goals[idx].saved) goals[idx].saved = 0; goals[idx].saved += prize;
 
                 await updateDoc(doc(db, "users", currentUser.uid), { 
-                    goals: goals, 
-                    availableSpins: increment(-1) // Deduct 1 spin
+                    goals: goals, balance: increment(prize), availableSpins: increment(-1) 
                 });
                 await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "spin_win", amount: prize, status: "success", date: new Date() });
                 
@@ -305,21 +368,46 @@
         window.openLoanModal = () => {
             let totalBal = 0; (userData.goals || []).forEach(g => totalBal += (g.saved || 0));
             const max = totalBal * 0.5;
-            document.getElementById('loanBaseBalance').innerText = `Rs. ${totalBal}`;
-            document.getElementById('maxLoanAmt').innerText = `Rs. ${max}`;
+            document.getElementById('loanBaseBalance').innerText = `Rs. ${totalBal.toFixed(2)}`;
+            document.getElementById('maxLoanAmt').innerText = `Rs. ${max.toFixed(2)}`;
             document.getElementById('loanModal').classList.remove('hidden');
         };
 
+        // --- NEW: LOAN FEE LOGIC (1%) ---
         window.requestLoan = async () => {
             const req = parseFloat(document.getElementById('loanAmountReq').value);
-            let totalBal = 0; (userData.goals || []).forEach(g => totalBal += (g.saved || 0));
+            let totalBal = 0; 
+            const goals = userData.goals || [];
+            goals.forEach(g => totalBal += (g.saved || 0));
             
             if(!req || req <= 0) return alert("Enter amount");
             if(req > (totalBal * 0.5)) return alert("Limit Exceeded!");
 
-            if(confirm("Send Request?")) {
-                await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "loan_request", amount: req, status: "pending", date: new Date() });
-                const msg = `🔔 *New Loan Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${req}\n🏦 Total Savings: Rs. ${totalBal}\n\nPlease approve in Admin Panel.`;
+            const fee = req * 0.01; // 1% Fee
+            
+            // Check if user has enough balance to cover the fee
+            // (Strictly speaking, since loan max is 50%, they have enough balance, but we need to deduct it)
+            
+            if(confirm(`Request Loan of Rs. ${req}?\n\nA Fee of Rs. ${fee} (1%) will be deducted from your savings.`)) {
+                
+                // Deduct Fee from Active Goal
+                const idx = userData.activeGoalIndex || 0;
+                if(goals[idx].saved >= fee) {
+                    goals[idx].saved -= fee;
+                } else {
+                    // Fallback: Deduct from first goal if active doesn't have enough
+                    goals[0].saved -= fee; 
+                }
+
+                // Update DB with Fee Deduction
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    goals: goals,
+                    balance: increment(-fee) 
+                });
+
+                await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "loan_request", amount: req, status: "pending", date: new Date(), feeDetails: `1% Fee (Rs.${fee}) Paid` });
+                
+                const msg = `🔔 *New Loan Request*\n\n👤 User: ${userData.name}\n💰 Loan Amount: Rs. ${req}\n📉 Fee Paid: Rs. ${fee}\n🏦 Total Savings: Rs. ${totalBal}\n\nPlease approve in Admin Panel.`;
                 window.open(`https://wa.me/94726284277?text=${encodeURIComponent(msg)}`, '_blank');
                 document.getElementById('loanModal').classList.add('hidden');
             }
