@@ -4,28 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CNV Super Saver</title>
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#eab308">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2830/2830284.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
         body { font-family: 'Noto Sans Sinhala', sans-serif; background: #0f172a; color: white; user-select: none; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .tree-container { transition: all 1s ease-in-out; }
         .wheel { transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
-        /* Loader */
         .loader-container { position: fixed; inset: 0; background: #0f172a; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .bouncing-tree { font-size: 4rem; animation: bounce 1.5s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         .loading-text { margin-top: 20px; color: #eab308; font-weight: bold; letter-spacing: 2px; animation: pulse 2s infinite; }
-        @keyframes grow { 0% { transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .grow-anim { animation: grow 2s infinite ease-in-out; }
+        .rank-1 { background: #FFD700; color: black; box-shadow: 0 0 10px #FFD700; }
+        .rank-2 { background: #C0C0C0; color: black; }
+        .rank-3 { background: #CD7F32; color: black; }
     </style>
 </head>
 <body class="min-h-screen pb-24">
@@ -75,7 +71,7 @@
                 <span>🎯</span> <span id="currentGoalName" class="font-bold text-yellow-400">Main Goal</span> <span>▼</span>
             </div>
             <div class="my-4 relative z-10 flex justify-center items-center h-32">
-                <div id="treeIcon" class="text-9xl drop-shadow-2xl tree-container">🌱</div>
+                <div id="treeIcon" class="text-9xl drop-shadow-2xl">🌱</div>
             </div>
             <p class="text-xs text-gray-400 uppercase tracking-widest relative z-10">Saved for this Goal</p>
             <h1 class="text-4xl font-bold text-white relative z-10 mt-1">Rs. <span id="balanceDisplay">0.00</span></h1>
@@ -92,8 +88,17 @@
         <div class="glass p-4 rounded-2xl mb-4">
             <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Target Progress</span><span id="targetPercentText">0%</span></div>
             <div class="w-full bg-gray-700 rounded-full h-2 mb-3"><div id="targetBar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div></div>
-            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Interest Unlock (10k)</span><span id="interestStatus" class="text-[10px]">LOCKED 🔒</span></div>
+            
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Bonus Status (Over 10k)</span>
+                <span id="interestStatus" class="text-[10px]">LOCKED 🔒</span>
+            </div>
             <div class="w-full bg-gray-700 rounded-full h-2"><div id="moneyBar" class="bg-yellow-600 h-2 rounded-full" style="width: 0%"></div></div>
+        </div>
+
+        <div class="glass p-4 rounded-2xl mb-6">
+            <h3 class="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2">🏆 Top 3 Savers (This Week)</h3>
+            <div id="leaderboardList" class="space-y-2"><p class="text-xs text-gray-500 text-center">Loading Ranks...</p></div>
         </div>
 
         <div class="grid grid-cols-2 gap-3 mb-6">
@@ -124,7 +129,7 @@
                     <input type="number" id="wAccountNo" placeholder="Account Number" class="w-full p-2 bg-gray-900 text-white text-xs border border-gray-600 rounded">
                 </div>
                 <input type="number" id="wAmount" placeholder="Amount (Rs)" class="w-full p-2 bg-gray-900 text-white border border-gray-600 rounded mb-3">
-                <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white font-bold py-2 rounded text-sm hover:bg-red-700">Request</button>
+                <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white font-bold py-2 rounded text-sm hover:bg-red-700">Request Withdrawal</button>
             </div>
             <div class="h-10 opacity-0"></div>
         </div>
@@ -154,7 +159,7 @@
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-blue-500">
             <h2 class="text-xl font-bold text-blue-400 mb-2">💸 Instant Loan Request</h2>
             <p class="text-gray-400 text-xs mb-4">Up to 50% of TOTAL savings.</p>
-            <p class="text-red-400 text-xs mb-4 font-bold">⚠️ Fee: 1% of Loan Amount will be deducted from your Balance.</p>
+            <p class="text-red-400 text-xs mb-4 font-bold">⚠️ Fee: 1% of Loan Amount will be deducted.</p>
             <div class="bg-gray-900 p-3 rounded-lg mb-4">
                 <div class="flex justify-between text-sm text-gray-300"><span>Total Savings:</span><span id="loanBaseBalance">Rs. 0</span></div>
                 <div class="flex justify-between text-sm text-green-400 font-bold mt-1"><span>Max Loan:</span><span id="maxLoanAmt">Rs. 0</span></div>
@@ -172,7 +177,7 @@
             <h2 class="text-xl font-bold text-white mb-4">🎯 Your Goals</h2>
             <div id="goalsList" class="space-y-2 mb-4 max-h-40 overflow-y-auto"></div>
             <div class="border-t border-gray-700 pt-4">
-                <input type="text" id="newGoalName" placeholder="Goal Name (e.g. Wedding)" class="w-full p-2 bg-gray-700 rounded mb-2 text-sm text-white">
+                <input type="text" id="newGoalName" placeholder="Goal Name" class="w-full p-2 bg-gray-700 rounded mb-2 text-sm text-white">
                 <input type="number" id="newGoalAmount" placeholder="Target (Rs)" class="w-full p-2 bg-gray-700 rounded mb-2 text-sm text-white">
                 <button onclick="addNewGoal()" class="w-full bg-green-600 text-white text-sm py-2 rounded font-bold">+ Add Goal</button>
             </div>
@@ -184,11 +189,11 @@
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-gray-600">
             <h2 class="text-xl font-bold text-yellow-400 mb-4">📜 Terms & Conditions</h2>
             <div class="h-64 overflow-y-auto text-sm text-gray-300 space-y-3 pr-2">
-                <p><strong>1. Savings & Goals:</strong> You must reach 100% of your Goal Target to withdraw money without penalty.</p>
-                <p><strong>2. Interest (10k Club):</strong> Daily interest of 0.05% is added ONLY if your total balance exceeds Rs. 10,000.</p>
-                <p><strong>3. Instant Loans:</strong> You can request up to 50% of your total savings. A <strong>1% Fee</strong> will be deducted from your current balance immediately.</p>
-                <p><strong>4. Lucky Spins:</strong> You earn 1 Spin for every Rs. 1000 deposited. Spins guarantee cash prizes added to your goal.</p>
-                <p><strong>5. Debt:</strong> Any loan taken is recorded as Debt. You must clear Debt before full withdrawal.</p>
+                <p><strong>1. Savings & Goals:</strong> Withdraw money without penalty only after reaching 100% of Target.</p>
+                <p><strong>2. Instant Bonus:</strong> If Balance > 10,000, you get <strong>0.5% Bonus (Rs.5 per 1000)</strong> instantly on every deposit.</p>
+                <p><strong>3. Instant Loans:</strong> Max 50% of savings. 1% Fee deducted instantly.</p>
+                <p><strong>4. Lucky Spins:</strong> Earn 1 Spin for every Rs. 1000 deposited.</p>
+                <p><strong>5. Debt:</strong> Must clear Debt before full withdrawal.</p>
             </div>
             <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-full mt-4 bg-gray-700 py-2 rounded font-bold">Close</button>
         </div>
@@ -204,12 +209,11 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, updateDoc, increment, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, updateDoc, increment, Timestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk", authDomain: "cnvbankbyuandy.firebaseapp.com", projectId: "cnvbankbyuandy", storageBucket: "cnvbankbyuandy.firebasestorage.app", messagingSenderId: "654524804107", appId: "1:654524804107:web:839811f4eb33b914786b0e" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app); const provider = new GoogleAuthProvider();
-        
         let currentUser = null, userData = null;
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
@@ -236,9 +240,7 @@
                     });
                     location.reload();
                 } else { loadDashboard(snap.data()); }
-            } else { 
-                document.getElementById('loginView').classList.remove('hidden'); 
-            }
+            } else { document.getElementById('loginView').classList.remove('hidden'); }
         });
 
         function loadDashboard(data) {
@@ -246,11 +248,11 @@
             document.getElementById('dashboardView').classList.remove('hidden');
             document.getElementById('userName').innerText = data.name.split(" ")[0];
             document.getElementById('userImg').src = data.photo;
+            loadLeaderboard();
 
             onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
                 userData = docSnap.data();
-                checkAndAddInterest(userData); 
-
+                
                 const goals = userData.goals || [{name:"Main Goal", target:10000, saved: 0}];
                 const activeIdx = (userData.activeGoalIndex !== undefined) ? userData.activeGoalIndex : 0;
                 const currentGoal = goals[activeIdx] || goals[0];
@@ -272,7 +274,7 @@
                 const intStatus = document.getElementById('interestStatus');
                 if(totalGlobalBalance >= 10000) {
                     document.getElementById('moneyBar').classList.add('bg-green-500');
-                    intStatus.innerText = "Interest Active ✅ (Daily)"; intStatus.className = "text-[10px] text-green-400 font-bold";
+                    intStatus.innerText = "Bonus Active ✅ (0.5% on Dep)"; intStatus.className = "text-[10px] text-green-400 font-bold";
                 } else {
                     document.getElementById('moneyBar').classList.remove('bg-green-500');
                     intStatus.innerText = "LOCKED 🔒 (Reach 10k)"; intStatus.className = "text-[10px] text-gray-400";
@@ -305,17 +307,27 @@
             });
         }
 
-        async function checkAndAddInterest(u) {
-            let totalBal = 0; (u.goals || []).forEach(g => totalBal += (g.saved || 0));
-            if(totalBal < 10000) return; 
-            const lastDate = u.lastInterestDate ? u.lastInterestDate.toDate() : new Date(0);
-            const now = new Date();
-            if(now.getTime() - lastDate.getTime() > (24 * 60 * 60 * 1000)) {
-                const interestAmount = totalBal * 0.0005; 
-                const goals = u.goals;
-                if(!goals[0].saved) goals[0].saved = 0; goals[0].saved += interestAmount;
-                await updateDoc(doc(db, "users", currentUser.uid), { goals: goals, lastInterestDate: Timestamp.now(), balance: increment(interestAmount) });
-            }
+        function loadLeaderboard() {
+            onSnapshot(collection(db, "users"), (snap) => {
+                let users = [];
+                snap.forEach(d => {
+                    const u = d.data();
+                    const goals = u.goals || [{target:100000, saved:0}];
+                    let totalSaved = 0, totalTarget = 0;
+                    goals.forEach(g => { totalSaved += (g.saved||0); totalTarget += (g.target||100000); });
+                    const pct = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+                    users.push({ name: u.name, photo: u.photo, pct: pct, uid: d.id });
+                });
+                users.sort((a, b) => b.pct - a.pct);
+                const top3 = users.slice(0, 3);
+                const list = document.getElementById('leaderboardList');
+                list.innerHTML = "";
+                top3.forEach((u, i) => {
+                    const isMe = u.uid === currentUser.uid;
+                    const rankClass = i === 0 ? "rank-1" : (i === 1 ? "rank-2" : "rank-3");
+                    list.innerHTML += `<div class="flex items-center justify-between bg-gray-800 p-2 rounded-lg border border-gray-700 ${isMe ? 'border-yellow-500' : ''}"><div class="flex items-center gap-3"><div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${rankClass}">${i+1}</div><img src="${u.photo}" class="w-8 h-8 rounded-full border border-gray-600"><p class="text-sm font-bold text-gray-200">${isMe ? 'You' : u.name.split(" ")[0]}</p></div><div class="text-right"><p class="text-xs font-bold text-green-400">${u.pct.toFixed(1)}%</p></div></div>`;
+                });
+            });
         }
 
         window.requestDeposit = async () => {
@@ -343,30 +355,20 @@
             if((userData.availableSpins || 0) <= 0) return;
             const btn = document.getElementById('spinBtn'); btn.disabled = true; 
             const wheel = document.getElementById('theWheel');
-            const prizes = [20, 50, 100, 200]; 
-            const prize = prizes[Math.floor(Math.random() * prizes.length)];
+            const prizes = [20, 50, 100, 200]; const prize = prizes[Math.floor(Math.random() * prizes.length)];
             
             let targetAngle = 0;
-            if (prize === 20) targetAngle = 45; 
-            else if (prize === 50) targetAngle = 315;
-            else if (prize === 100) targetAngle = 225;
-            else if (prize === 200) targetAngle = 135;
-
+            if (prize === 20) targetAngle = 45; else if (prize === 50) targetAngle = 315; else if (prize === 100) targetAngle = 225; else if (prize === 200) targetAngle = 135;
             const rot = (360 * 8) + targetAngle + Math.floor(Math.random() * 20 - 10);
             wheel.style.transform = `rotate(${rot}deg)`;
 
             setTimeout(async () => {
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                 document.getElementById('spinResult').innerText = `You won Rs. ${prize}!`;
-                
                 const goals = userData.goals; const idx = userData.activeGoalIndex || 0;
                 if(!goals[idx].saved) goals[idx].saved = 0; goals[idx].saved += prize;
-
-                await updateDoc(doc(db, "users", currentUser.uid), { 
-                    goals: goals, balance: increment(prize), availableSpins: increment(-1) 
-                });
+                await updateDoc(doc(db, "users", currentUser.uid), { goals: goals, balance: increment(prize), availableSpins: increment(-1) });
                 await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "spin_win", amount: prize, status: "success", date: new Date() });
-                
                 setTimeout(() => { document.getElementById('spinModal').classList.add('hidden'); wheel.style.transform = 'rotate(0deg)'; document.getElementById('spinResult').innerText = ""; }, 2000);
             }, 4000);
         };
@@ -382,19 +384,14 @@
         window.requestLoan = async () => {
             const req = parseFloat(document.getElementById('loanAmountReq').value);
             let totalBal = 0; const goals = userData.goals || []; goals.forEach(g => totalBal += (g.saved || 0));
-            
             if(!req || req <= 0) return alert("Enter amount");
             if(req > (totalBal * 0.5)) return alert("Limit Exceeded!");
-
             const fee = req * 0.01; 
-            
-            if(confirm(`Request Loan of Rs. ${req}?\n\nA Fee of Rs. ${fee} (1%) will be deducted from your savings.`)) {
+            if(confirm(`Request Loan of Rs. ${req}?\n\nA Fee of Rs. ${fee} (1%) will be deducted.`)) {
                 const idx = userData.activeGoalIndex || 0;
                 if(goals[idx].saved >= fee) { goals[idx].saved -= fee; } else { goals[0].saved -= fee; }
-
                 await updateDoc(doc(db, "users", currentUser.uid), { goals: goals, balance: increment(-fee) });
                 await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "loan_request", amount: req, status: "pending", date: new Date(), feeDetails: `1% Fee (Rs.${fee}) Paid` });
-                
                 const msg = `🔔 *New Loan Request*\n\n👤 User: ${userData.name}\n💰 Loan Amount: Rs. ${req}\n📉 Fee Paid: Rs. ${fee}\n🏦 Total Savings: Rs. ${totalBal}\n\nPlease approve in Admin Panel.`;
                 window.open(`https://wa.me/94726284277?text=${encodeURIComponent(msg)}`, '_blank');
                 document.getElementById('loanModal').classList.add('hidden');
@@ -404,48 +401,26 @@
         window.toggleWithdrawMethod = () => {
             const method = document.querySelector('input[name="wType"]:checked').value;
             const bankDiv = document.getElementById('bankDetailsSection');
-            if (method === 'bank') bankDiv.classList.remove('hidden');
-            else bankDiv.classList.add('hidden');
+            if (method === 'bank') bankDiv.classList.remove('hidden'); else bankDiv.classList.add('hidden');
         };
 
         window.requestWithdraw = async () => {
             const amount = parseFloat(document.getElementById('wAmount').value);
-            if (!amount || amount <= 0) return alert("Enter a valid amount!");
-
-            // Send Current Goal Name to Admin
+            if (!amount || amount <= 0) return alert("Enter valid amount!");
             const currentGoalName = userData.goals[userData.activeGoalIndex || 0].name;
-
             const method = document.querySelector('input[name="wType"]:checked').value;
-            let details = "Cash Withdrawal";
-            let bankMsgPart = "";
-
+            let details = "Cash Withdrawal"; let bankMsgPart = "";
             if (method === 'bank') {
-                const bank = document.getElementById('wBankName').value;
-                const branch = document.getElementById('wBranchName').value;
-                const acc = document.getElementById('wAccountNo').value;
-                if (!bank || !branch || !acc) return alert("Please fill all bank details!");
+                const bank = document.getElementById('wBankName').value; const branch = document.getElementById('wBranchName').value; const acc = document.getElementById('wAccountNo').value;
+                if (!bank || !branch || !acc) return alert("Please fill details!");
                 details = `Bank: ${bank} | Branch: ${branch} | Acc: ${acc}`;
                 bankMsgPart = `\n🏦 Bank: ${bank}\n📍 Branch: ${branch}\n🔢 Acc: ${acc}`;
             }
-
-            if(confirm("Confirm Withdrawal Request?")) {
-                await addDoc(collection(db, "transactions"), { 
-                    userId: currentUser.uid, 
-                    userName: userData.name, 
-                    type: "withdraw", 
-                    amount: amount, 
-                    status: "pending", 
-                    date: new Date(), 
-                    method: method,
-                    details: details,
-                    targetGoal: currentGoalName // Sending Goal Name!
-                });
-
+            if(confirm("Confirm Withdrawal?")) {
+                await addDoc(collection(db, "transactions"), { userId: currentUser.uid, userName: userData.name, type: "withdraw", amount: amount, status: "pending", date: new Date(), method: method, details: details, targetGoal: currentGoalName });
                 const msg = `🔔 *New Withdrawal Request*\n\n👤 User: ${userData.name}\n💰 Amount: Rs. ${amount}\n🎯 From Goal: ${currentGoalName}\n📂 Method: ${method.toUpperCase()}${bankMsgPart}\n\nPlease check Admin Panel.`;
                 window.open(`https://wa.me/94726284277?text=${encodeURIComponent(msg)}`, '_blank');
-
-                alert("Withdrawal Requested!");
-                document.getElementById('wAmount').value = "";
+                alert("Requested!"); document.getElementById('wAmount').value = "";
             }
         };
 
