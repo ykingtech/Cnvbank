@@ -21,88 +21,51 @@
         @keyframes grow { 0% { transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .grow-anim { animation: grow 2s infinite ease-in-out; }
         
-        /* Toast Notification Animation */
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .toast { animation: slideIn 0.3s ease-out forwards; }
+        /* Spin Wheel Animation */
+        .wheel { transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1); }
     </style>
 </head>
 <body class="min-h-screen pb-24">
 
-    <div id="toastContainer" class="fixed top-5 right-5 z-[60] flex flex-col gap-2"></div>
-
     <div id="installPrompt" class="hidden fixed bottom-4 left-4 right-4 bg-gray-800 p-4 rounded-xl border border-yellow-500 shadow-2xl z-50 flex justify-between items-center animate-bounce">
-        <div><p class="font-bold text-white">Install App 📲</p><p class="text-xs text-gray-400">Add CNV Bank to Home Screen</p></div>
+        <div><p class="font-bold text-white">Install App 📲</p><p class="text-xs text-gray-400">Add to Home Screen</p></div>
         <button onclick="installApp()" class="bg-yellow-500 text-black font-bold px-4 py-2 rounded-lg hover:bg-yellow-400">Install</button>
     </div>
 
     <div id="loginView" class="flex flex-col justify-center items-center min-h-screen p-4">
-        <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">CNV BANK🏆</h1>
-        <p class="text-gray-400 mb-8 text-center">WE SAVE FOR YOU</p>
+        <h1 class="text-4xl font-bold text-yellow-400 mb-2 tracking-wider">SUPER SAVER 🏆</h1>
+        <p class="text-gray-400 mb-8 text-center">Save Smart. Win Big.</p>
         <button onclick="googleLogin()" class="bg-white text-gray-900 px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-3 hover:scale-105 transition">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6"> Google Login
         </button>
     </div>
 
-    <div id="termsView" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-95 p-4">
-        <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-yellow-500 shadow-2xl">
-            <h2 class="text-xl font-bold text-yellow-400 mb-4 border-b border-gray-700 pb-2">📜 නීති සහ කොන්දේසි</h2>
-            <div class="h-64 overflow-y-auto text-sm text-gray-300 mb-4 bg-gray-900 p-3 rounded leading-relaxed border border-gray-700">
-                <p class="mb-3"><strong class="text-white">1. ඉලක්කගත ඉතිරිකිරීම්:</strong> ඉලක්කය සම්පූර්ණ වන තෙක් මුදල් එකතු කළ යුතුය.</p>
-                <p class="mb-3"><strong class="text-white">2. පොලී ගෙවීම:</strong> රු. 10,000 ඉක්මවූ පසු පමණක් පොලී සක්‍රිය වේ.</p>
-                <p class="mb-3"><strong class="text-white">3. මුදල් ආපසු ගැනීම:</strong> මුදල් ගත හැක්කේ Target එක 100% වූ විට පමණි.</p>
-                <p class="text-xs text-gray-500 mt-4">* ඉදිරියට යාමෙන් ඔබ එකඟ වේ.</p>
-            </div>
-            <button onclick="acceptTerms()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg">මම එකඟයි (I Accept) ✅</button>
-        </div>
-    </div>
-
-    <div id="setupView" class="hidden min-h-screen flex flex-col justify-center items-center p-4 bg-gray-900 z-30 fixed inset-0">
-        <div class="glass p-6 rounded-2xl w-full max-w-md text-center border border-gray-600">
-            <h2 class="text-2xl font-bold mb-2 text-yellow-400">🎯 අලුත් ඉලක්කයක්</h2>
-            <p class="text-gray-400 text-sm mb-6">ඔබට ඊළඟට එකතු කරන්න අවශ්‍ය මුළු මුදල කීයද?</p>
-            <input type="number" id="targetAmountInput" placeholder="Ex: 100000" class="w-full p-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-xl font-bold text-center mb-6 focus:border-yellow-500 outline-none">
-            <div class="flex gap-2">
-                <button onclick="cancelSetup()" id="btnCancelSetup" class="hidden flex-1 bg-gray-600 text-white font-bold py-3 rounded-xl">Cancel</button>
-                <button onclick="saveTarget()" class="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold py-3 rounded-xl shadow-lg">Set Target 🚀</button>
-            </div>
-        </div>
-    </div>
-
     <div id="dashboardView" class="hidden p-4 max-w-md mx-auto">
-        <div class="flex justify-between items-center mb-2">
+        <div class="flex justify-between items-center mb-4">
             <div>
                 <h2 class="text-xl font-bold" id="userName">User</h2>
-                <div class="flex items-center gap-1 bg-orange-900/50 px-2 py-1 rounded-lg border border-orange-500/30 mt-1">
-                    <span class="text-lg">🔥</span><span id="streakCount" class="text-orange-400 font-bold text-sm">0 Days Streak!</span>
+                <div class="flex items-center gap-2">
+                    <span class="bg-orange-900/50 px-2 py-1 rounded text-xs text-orange-400 border border-orange-500/30">🔥 <span id="streakCount">0</span> Days</span>
+                    <span class="bg-blue-900/50 px-2 py-1 rounded text-xs text-blue-400 border border-blue-500/30">🏆 <span id="userLevel">Bronze</span></span>
                 </div>
             </div>
             <img id="userImg" src="" class="w-12 h-12 rounded-full border-2 border-yellow-500">
         </div>
 
-        <div class="flex justify-between gap-2 mb-4 bg-gray-800/50 p-2 rounded-xl border border-gray-700">
-            <div id="badgeBronze" class="opacity-30 grayscale flex flex-col items-center w-1/3 transition-all duration-500">
-                <span class="text-2xl drop-shadow">🥉</span><span class="text-[10px] text-gray-400">Bronze</span>
+        <div onclick="openSpinWheel()" class="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-xl mb-4 flex justify-between items-center shadow-lg cursor-pointer transform active:scale-95 transition">
+            <div>
+                <h3 class="font-bold text-white">🎰 Lucky Spin</h3>
+                <p class="text-xs text-pink-200">Win daily cash prizes!</p>
             </div>
-            <div id="badgeSilver" class="opacity-30 grayscale flex flex-col items-center w-1/3 border-l border-r border-gray-700 transition-all duration-500">
-                <span class="text-2xl drop-shadow">🥈</span><span class="text-[10px] text-gray-400">Silver</span>
-            </div>
-            <div id="badgeGold" class="opacity-30 grayscale flex flex-col items-center w-1/3 transition-all duration-500">
-                <span class="text-2xl drop-shadow">🥇</span><span class="text-[10px] text-gray-400">Gold</span>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <button onclick="generateCard()" class="bg-gray-800 border border-yellow-500/30 text-yellow-400 font-bold py-3 rounded-xl shadow flex flex-col items-center justify-center gap-1 hover:bg-gray-700">
-                <span class="text-xl">🪪</span> <span class="text-xs">Membership Card</span>
-            </button>
-            <button onclick="openHistory()" class="bg-gray-800 border border-blue-500/30 text-blue-400 font-bold py-3 rounded-xl shadow flex flex-col items-center justify-center gap-1 hover:bg-gray-700">
-                <span class="text-xl">📜</span> <span class="text-xs">History</span>
-            </button>
+            <div class="bg-white text-purple-600 px-3 py-1 rounded-full font-bold text-xs">Spin Now</div>
         </div>
 
         <div class="glass p-6 rounded-3xl mb-4 text-center relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-full bg-green-500/5 z-0"></div>
-            <p class="text-xs text-green-300 uppercase tracking-widest relative z-10">My Savings Tree</p>
+            <div onclick="openGoalManager()" class="absolute top-3 right-3 bg-gray-800/50 p-1 px-3 rounded-full text-xs cursor-pointer hover:bg-gray-700 z-20 flex items-center gap-1">
+                <span>🎯</span> <span id="currentGoalName">Main Goal</span> <span>▼</span>
+            </div>
+
             <div class="my-4 relative z-10 flex justify-center items-center h-32">
                 <div id="treeIcon" class="text-9xl drop-shadow-2xl tree-container">🌱</div>
             </div>
@@ -110,69 +73,103 @@
             <p class="text-xs text-gray-400 mt-1 relative z-10">Target: Rs. <span id="targetDisplay">0</span></p>
         </div>
 
-        <button id="btnSetTarget" onclick="openTargetSetup()" class="w-full mb-6 bg-gray-700 text-gray-400 font-bold py-3 rounded-xl shadow-lg flex justify-center items-center gap-2 cursor-not-allowed opacity-50 transition-all duration-300" disabled>
-            <span>🔒</span> Target Locked
-        </button>
-
-        <div class="glass p-4 rounded-2xl mb-6">
+        <div class="glass p-4 rounded-2xl mb-4">
             <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Target Progress</span><span id="targetPercentText">0%</span></div>
-            <div class="w-full bg-gray-700 rounded-full h-3 mb-4"><div id="targetBar" class="bg-blue-500 h-3 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
-            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Monetization (Interest > 10k)</span><span id="moneyPercentText">0%</span></div>
-            <div class="w-full bg-gray-700 rounded-full h-3"><div id="moneyBar" class="bg-yellow-600 h-3 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
-            <p id="interestStatus" class="text-[10px] text-right mt-1 text-gray-500">Reach 10k to unlock interest 🔒</p>
+            <div class="w-full bg-gray-700 rounded-full h-2 mb-3"><div id="targetBar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div></div>
+            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Interest Unlock (10k)</span><span id="moneyPercentText">0%</span></div>
+            <div class="w-full bg-gray-700 rounded-full h-2"><div id="moneyBar" class="bg-yellow-600 h-2 rounded-full" style="width: 0%"></div></div>
         </div>
 
-        <div class="glass p-4 rounded-2xl mb-6">
-            <h3 class="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2">🏆 Top Savers (% Completed)</h3>
-            <div id="leaderboardList" class="space-y-2"><p class="text-xs text-gray-500">Loading...</p></div>
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <button onclick="openLoanModal()" class="bg-gray-800 border border-blue-500/30 text-blue-400 font-bold py-3 rounded-xl shadow flex flex-col items-center justify-center gap-1 hover:bg-gray-700">
+                <span class="text-xl">💸</span> <span class="text-xs">Instant Loan</span>
+            </button>
+            <button onclick="generateCard()" class="bg-gray-800 border border-yellow-500/30 text-yellow-400 font-bold py-3 rounded-xl shadow flex flex-col items-center justify-center gap-1 hover:bg-gray-700">
+                <span class="text-xl">🪪</span> <span class="text-xs">Member Card</span>
+            </button>
         </div>
 
-        <div class="glass p-4 rounded-2xl border-l-4 border-red-500 relative">
-            <h3 class="font-bold text-gray-200 mb-2">Withdraw Money</h3>
+        <div class="glass p-4 rounded-2xl border-l-4 border-red-500 relative mb-20">
+            <h3 class="font-bold text-gray-200 mb-2">Withdraw Savings</h3>
             <div id="withdrawLock" class="absolute inset-0 bg-gray-900/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-r-2xl p-4">
-                <span class="text-2xl mb-1">🔒</span><p class="text-[10px] text-gray-400">Unlocks at 100% Target</p>
+                <span class="text-xl mb-1">🔒</span><p class="text-[10px] text-gray-400">Reach 100% to Unlock</p>
             </div>
             <div id="withdrawForm" class="hidden">
-                <div class="flex gap-2 mb-3">
-                    <label class="flex-1 cursor-pointer"><input type="radio" name="wType" value="cash" checked class="peer hidden"><div class="bg-gray-700 peer-checked:bg-green-600 p-2 rounded text-center text-xs text-gray-300 peer-checked:text-white transition">Cash 💵</div></label>
-                    <label class="flex-1 cursor-pointer"><input type="radio" name="wType" value="bank" class="peer hidden" onchange="toggleBank()"><div class="bg-gray-700 peer-checked:bg-blue-600 p-2 rounded text-center text-xs text-gray-300 peer-checked:text-white transition">Bank 🏦</div></label>
-                </div>
-                <input type="number" id="wAmount" placeholder="Amount (Rs)" class="w-full p-2 bg-gray-900 border border-gray-600 rounded mb-2 text-white text-sm">
-                <div id="bankF" class="hidden space-y-2 mb-2">
-                    <input type="text" id="bName" placeholder="Bank Name" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-xs text-white">
-                    <input type="text" id="bAcc" placeholder="Account No" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-xs text-white">
-                </div>
-                <button onclick="requestWithdraw()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded shadow text-sm">Request Withdraw 🔓</button>
+                <button onclick="requestWithdraw()" class="w-full bg-red-600 text-white font-bold py-2 rounded text-sm">Request Full Withdrawal</button>
             </div>
-            <div id="dummyForm" class="opacity-30 pointer-events-none h-16"></div>
+            <div class="h-10 opacity-0"></div>
         </div>
-        
-        <button onclick="logout()" class="w-full mt-8 text-gray-500 text-sm mb-10">Logout</button>
     </div>
 
-    <div id="historyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-95 p-4">
-        <div class="bg-gray-900 rounded-2xl max-w-md w-full p-4 border border-blue-500 h-3/4 flex flex-col">
-            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                <h2 class="text-xl font-bold text-blue-400">📜 History</h2>
-                <button onclick="document.getElementById('historyModal').classList.add('hidden')" class="text-gray-400">✕</button>
+    <div id="spinModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center relative overflow-hidden">
+            <button onclick="document.getElementById('spinModal').classList.add('hidden')" class="absolute top-2 right-4 text-gray-400 text-xl">✕</button>
+            <h2 class="text-2xl font-bold text-purple-400 mb-4">Daily Lucky Spin 🎡</h2>
+            
+            <div class="relative w-64 h-64 mx-auto mb-6">
+                <div id="theWheel" class="wheel w-full h-full rounded-full border-4 border-yellow-500 relative shadow-2xl" 
+                     style="background: conic-gradient(#ef4444 0deg 90deg, #3b82f6 90deg 180deg, #22c55e 180deg 270deg, #eab308 270deg 360deg);">
+                     <span class="absolute top-10 left-10 text-white font-bold transform -rotate-45">Rs.10</span>
+                     <span class="absolute top-10 right-10 text-white font-bold transform rotate-45">Rs.20</span>
+                     <span class="absolute bottom-10 right-10 text-white font-bold transform rotate-[135deg]">Rs.50</span>
+                     <span class="absolute bottom-10 left-10 text-white font-bold transform rotate-[225deg]">Rs.100</span>
+                </div>
+                <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 text-3xl text-white">▼</div>
             </div>
-            <div id="historyList" class="flex-1 overflow-y-auto space-y-2 text-sm">
-                <p class="text-center text-gray-500">Loading...</p>
+
+            <p id="spinResult" class="text-white font-bold mb-4 h-6"></p>
+            <button id="spinBtn" onclick="spinTheWheel()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 rounded-xl shadow-lg">SPIN NOW!</button>
+        </div>
+    </div>
+
+    <div id="loanModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm border border-blue-500">
+            <h2 class="text-xl font-bold text-blue-400 mb-2">💸 Instant Loan</h2>
+            <p class="text-gray-400 text-xs mb-4">Get up to 50% of your savings instantly. No questions asked.</p>
+            
+            <div class="bg-gray-900 p-3 rounded-lg mb-4">
+                <div class="flex justify-between text-sm text-gray-300"><span>Savings:</span><span id="loanBaseBalance">Rs. 0</span></div>
+                <div class="flex justify-between text-sm text-green-400 font-bold mt-1"><span>Max Loan:</span><span id="maxLoanAmt">Rs. 0</span></div>
+                <div class="flex justify-between text-sm text-red-400 mt-1"><span>Existing Debt:</span><span id="currentDebt">Rs. 0</span></div>
             </div>
+
+            <input type="number" id="loanAmountReq" placeholder="Enter Amount" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white mb-4">
+            
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('loanModal').classList.add('hidden')" class="flex-1 bg-gray-600 py-2 rounded-lg">Cancel</button>
+                <button onclick="requestLoan()" class="flex-1 bg-blue-600 py-2 rounded-lg font-bold">Get Loan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="goalModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold text-white mb-4">🎯 Manage Goals</h2>
+            
+            <div id="goalsList" class="space-y-2 mb-4 max-h-40 overflow-y-auto">
+                </div>
+
+            <div class="border-t border-gray-700 pt-4">
+                <p class="text-xs text-gray-400 mb-2">Add New Goal</p>
+                <input type="text" id="newGoalName" placeholder="Name (e.g. Car)" class="w-full p-2 bg-gray-700 rounded mb-2 text-sm text-white">
+                <input type="number" id="newGoalAmount" placeholder="Target Amount" class="w-full p-2 bg-gray-700 rounded mb-2 text-sm text-white">
+                <button onclick="addNewGoal()" class="w-full bg-green-600 text-white text-sm py-2 rounded font-bold">+ Create Goal</button>
+            </div>
+            <button onclick="document.getElementById('goalModal').classList.add('hidden')" class="w-full mt-4 text-gray-500 text-xs">Close</button>
         </div>
     </div>
 
     <div id="cardModal" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-95 p-4">
-        <h2 class="text-yellow-400 font-bold text-xl mb-4 tracking-widest">MEMBERSHIP CARD</h2>
+        <h2 class="text-yellow-400 font-bold text-xl mb-4">MEMBERSHIP CARD</h2>
         <canvas id="cardCanvas" width="1000" height="600" class="hidden"></canvas>
         <img id="cardImage" class="w-full max-w-sm rounded-xl shadow-2xl border border-yellow-600 mb-6">
-        <a id="downloadLink" class="w-full max-w-sm bg-green-600 text-white font-bold py-3 rounded-xl text-center shadow-lg mb-3">Download Image 📥</a>
+        <a id="downloadLink" class="w-full max-w-sm bg-green-600 text-white font-bold py-3 rounded-xl text-center shadow-lg mb-3">Download 📥</a>
         <button onclick="document.getElementById('cardModal').classList.add('hidden')" class="text-gray-400 text-sm">Close</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, setDoc, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -181,8 +178,7 @@
             projectId: "cnvbankbyuandy",
             storageBucket: "cnvbankbyuandy.firebasestorage.app",
             messagingSenderId: "654524804107",
-            appId: "1:654524804107:web:839811f4eb33b914786b0e",
-            measurementId: "G-PWWVKS8EEM"
+            appId: "1:654524804107:web:839811f4eb33b914786b0e"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -191,40 +187,16 @@
         const provider = new GoogleAuthProvider();
         
         let currentUser = null;
-        let userDataGlobal = null;
-        let confettiTriggered = false;
+        let userData = null;
 
-        // --- UTILS ---
-        function showToast(msg, type = 'info') {
-            const el = document.createElement('div');
-            el.className = `toast px-4 py-3 rounded-lg shadow-lg text-sm font-bold text-white mb-2 ${type==='success'?'bg-green-600':type==='error'?'bg-red-600':'bg-blue-600'}`;
-            el.innerText = msg;
-            document.getElementById('toastContainer').appendChild(el);
-            setTimeout(() => el.remove(), 3000);
-        }
-
-        // --- PWA ---
+        // PWA
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
         let deferredPrompt;
-        const installBox = document.getElementById('installPrompt');
-        if (window.matchMedia('(display-mode: standalone)').matches) installBox.classList.add('hidden');
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
-            if (!window.matchMedia('(display-mode: standalone)').matches) installBox.classList.remove('hidden');
-        });
-        window.installApp = async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt(); installBox.classList.add('hidden'); deferredPrompt = null;
-        };
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('installPrompt').classList.remove('hidden'); });
+        window.installApp = async () => { if(deferredPrompt) { deferredPrompt.prompt(); document.getElementById('installPrompt').classList.add('hidden'); } };
 
-        function showView(viewId) {
-            ['loginView', 'termsView', 'setupView', 'dashboardView'].forEach(id => {
-                const el = document.getElementById(id);
-                if(id === viewId) el.classList.remove('hidden'); else el.classList.add('hidden');
-            });
-        }
-
-        window.googleLogin = () => signInWithPopup(auth, provider).catch(e => showToast(e.message, 'error'));
+        // AUTH
+        window.googleLogin = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
         window.logout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, async (user) => {
@@ -235,162 +207,204 @@
 
                 if (!snap.exists()) {
                     const accNo = "CNV" + Math.floor(1000000000 + Math.random() * 9000000000);
+                    // Initial Data with Multiple Goals support
                     await setDoc(userRef, {
                         name: user.displayName, email: user.email, photo: user.photoURL,
-                        balance: 0, target: 0, streak: 0, termsAccepted: false,
-                        accountNo: accNo, joinedDate: new Date().toLocaleDateString()
+                        balance: 0, streak: 0, debt: 0, lastSpin: null,
+                        accountNo: accNo, joinedDate: new Date().toLocaleDateString(),
+                        activeGoalIndex: 0,
+                        goals: [{ name: "Main Goal", target: 100000 }] 
                     });
-                    showView('termsView');
+                    location.reload();
                 } else {
-                    const data = snap.data();
-                    userDataGlobal = data;
-                    if (!data.termsAccepted) showView('termsView');
-                    else if (!data.target) { document.getElementById('btnCancelSetup').classList.add('hidden'); showView('setupView'); }
-                    else loadDashboard(data);
+                    loadDashboard(snap.data());
                 }
-            } else showView('loginView');
+            } else {
+                document.getElementById('loginView').classList.remove('hidden');
+            }
         });
 
-        window.acceptTerms = async () => {
-            await setDoc(doc(db, "users", currentUser.uid), { termsAccepted: true }, { merge: true });
-            document.getElementById('btnCancelSetup').classList.add('hidden'); showView('setupView');
-        };
-        window.openTargetSetup = () => { document.getElementById('btnCancelSetup').classList.remove('hidden'); showView('setupView'); };
-        window.cancelSetup = () => showView('dashboardView');
-        window.saveTarget = async () => {
-            const val = parseFloat(document.getElementById('targetAmountInput').value);
-            if(val) { await setDoc(doc(db, "users", currentUser.uid), { target: val }, { merge: true }); location.reload(); }
-        };
-
-        function loadDashboard(d) {
-            showView('dashboardView');
-            document.getElementById('userName').innerText = d.name.split(" ")[0];
-            document.getElementById('userImg').src = d.photo;
-            userDataGlobal = d;
+        function loadDashboard(data) {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            
+            document.getElementById('userName').innerText = data.name.split(" ")[0];
+            document.getElementById('userImg').src = data.photo;
 
             onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
-                const u = docSnap.data();
-                userDataGlobal = u;
-                document.getElementById('streakCount').innerText = `${u.streak || 0} Days`;
-                if(u.streak > 5) document.getElementById('streakCount').innerText += " 🔥";
+                userData = docSnap.data();
+                const goals = userData.goals || [{name:"Main", target:100000}];
+                const activeIdx = userData.activeGoalIndex || 0;
+                const currentGoal = goals[activeIdx];
 
-                const pct = u.target ? (u.balance/u.target)*100 : 0;
-                
-                // Tree
-                let treeIcon = "🌱";
-                if(pct>10) treeIcon="🌿"; if(pct>40) treeIcon="🌳"; if(pct>80) treeIcon="🌲"; if(pct>=100) treeIcon="🎄";
-                const treeEl = document.getElementById('treeIcon'); treeEl.innerText = treeIcon;
-                if(pct>0) treeEl.classList.add('grow-anim');
+                // Update UI
+                document.getElementById('currentGoalName').innerText = currentGoal.name;
+                document.getElementById('balanceDisplay').innerText = userData.balance.toFixed(2);
+                document.getElementById('targetDisplay').innerText = currentGoal.target;
+                document.getElementById('streakCount').innerText = userData.streak || 0;
 
-                // Confetti Check
-                if(pct >= 100 && !confettiTriggered) {
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                    showToast("Congratulations! Target Reached! 🎉", "success");
-                    confettiTriggered = true;
-                }
+                // Levels
+                let level = "Bronze";
+                if(userData.balance > 10000) level = "Silver";
+                if(userData.balance > currentGoal.target) level = "Gold";
+                document.getElementById('userLevel').innerText = level;
 
-                // Badges
-                updateBadge('badgeBronze', u.balance >= 5000);
-                updateBadge('badgeSilver', u.balance >= 10000);
-                updateBadge('badgeGold', u.balance >= u.target);
-
-                document.getElementById('balanceDisplay').innerText = u.balance.toFixed(2);
-                document.getElementById('targetDisplay').innerText = u.target;
+                // Progress Bars
+                const pct = (userData.balance / currentGoal.target) * 100;
                 document.getElementById('targetBar').style.width = `${Math.min(pct,100)}%`;
                 document.getElementById('targetPercentText').innerText = `${pct.toFixed(1)}%`;
-                
-                const mPct = Math.min((u.balance/10000)*100, 100);
-                document.getElementById('moneyBar').style.width = `${mPct}%`;
-                if(u.balance >= 10000) document.getElementById('moneyBar').classList.add('bg-green-500');
 
-                // Locks
-                const btn = document.getElementById('btnSetTarget');
-                if(u.balance >= u.target && u.balance > 0) {
-                    btn.disabled = false; btn.innerHTML = "🎯 Set New Target"; btn.classList.replace('opacity-50','bg-yellow-500');
+                const mPct = Math.min((userData.balance / 10000) * 100, 100);
+                document.getElementById('moneyBar').style.width = `${mPct}%`;
+                if(userData.balance>=10000) document.getElementById('moneyBar').classList.add('bg-green-500');
+
+                // Tree
+                let tree = "🌱";
+                if(pct>20) tree="🌿"; if(pct>50) tree="🌳"; if(pct>80) tree="🌲"; if(pct>=100) tree="🎄";
+                document.getElementById('treeIcon').innerText = tree;
+
+                // Unlock Withdraw
+                if(userData.balance >= currentGoal.target && userData.balance > 0) {
                     document.getElementById('withdrawLock').classList.add('hidden');
                     document.getElementById('withdrawForm').classList.remove('hidden');
-                    document.getElementById('dummyForm').classList.add('hidden');
                 } else {
-                    btn.disabled = true; btn.innerHTML = "🔒 Target Locked"; btn.classList.add('opacity-50');
                     document.getElementById('withdrawLock').classList.remove('hidden');
                     document.getElementById('withdrawForm').classList.add('hidden');
-                    document.getElementById('dummyForm').classList.remove('hidden');
                 }
             });
-            loadLeaderboard();
         }
 
-        function updateBadge(id, active) {
-            const el = document.getElementById(id);
-            if(active) { el.classList.remove('opacity-30', 'grayscale'); el.classList.add('scale-110'); }
-            else { el.classList.add('opacity-30', 'grayscale'); el.classList.remove('scale-110'); }
-        }
-
-        // HISTORY LOGIC
-        window.openHistory = async () => {
-            document.getElementById('historyModal').classList.remove('hidden');
-            const list = document.getElementById('historyList');
-            const q = query(collection(db, "transactions"), where("userId", "==", currentUser.uid), orderBy("date", "desc"), limit(20));
-            const snap = await getDocs(q);
-            list.innerHTML = "";
-            if(snap.empty) list.innerHTML = "<p class='text-center text-gray-500'>No records found.</p>";
-            snap.forEach(d => {
-                const t = d.data();
-                const isDep = t.type === 'deposit';
-                list.innerHTML += `
-                    <div class="flex justify-between items-center bg-gray-800 p-2 rounded border border-gray-700">
-                        <div>
-                            <p class="font-bold text-gray-300">${isDep ? '📥 Deposit' : '📤 Withdraw'}</p>
-                            <p class="text-[10px] text-gray-500">${new Date(t.date.seconds*1000).toLocaleDateString()}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold ${isDep ? 'text-green-400' : 'text-red-400'}">Rs. ${t.amount}</p>
-                            <p class="text-[10px] uppercase text-gray-500">${t.status}</p>
-                        </div>
-                    </div>`;
-            });
+        // --- 1. LUCKY SPIN ---
+        window.openSpinWheel = () => {
+            const today = new Date().toDateString();
+            if(userData.lastSpin === today) return alert("Come back tomorrow! 🕒");
+            document.getElementById('spinModal').classList.remove('hidden');
         };
 
-        async function loadLeaderboard() {
-            const q = query(collection(db, "users")); 
-            const snap = await getDocs(q);
-            let users = [];
-            snap.forEach(d => { const u = d.data(); if(u.balance>0) users.push({n:u.name, p:(u.balance/u.target)*100}); });
-            users.sort((a,b)=>b.p-a.p);
-            document.getElementById('leaderboardList').innerHTML = users.slice(0,3).map((u,i)=>
-                `<div class="flex justify-between items-center bg-gray-800 p-2 rounded border border-gray-700 text-sm"><span>${i==0?'🥇':i==1?'🥈':'🥉'} ${u.n.split(" ")[0]}</span><span class="text-blue-400 font-bold">${u.p.toFixed(1)}%</span></div>`
-            ).join('');
-        }
+        window.spinTheWheel = async () => {
+            const btn = document.getElementById('spinBtn');
+            btn.disabled = true; 
+            const wheel = document.getElementById('theWheel');
+            const prizes = [10, 20, 50, 100];
+            const prize = prizes[Math.floor(Math.random() * prizes.length)];
+            
+            // Rotate Animation
+            const rot = 360 * 5 + Math.floor(Math.random() * 360);
+            wheel.style.transform = `rotate(${rot}deg)`;
 
-        window.toggleBank = () => {
-            const isBank = document.querySelector('input[name="wType"]:checked').value === 'bank';
-            const el = document.getElementById('bankF');
-            if(isBank) el.classList.remove('hidden'); else el.classList.add('hidden');
+            setTimeout(async () => {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                document.getElementById('spinResult').innerText = `You won Rs. ${prize}! 🎉`;
+                
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    balance: increment(prize),
+                    lastSpin: new Date().toDateString()
+                });
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentUser.uid, type: "spin_win", amount: prize, date: new Date(), status: "success"
+                });
+                
+                setTimeout(() => {
+                    document.getElementById('spinModal').classList.add('hidden');
+                    btn.disabled = false;
+                    wheel.style.transform = 'rotate(0deg)';
+                    document.getElementById('spinResult').innerText = "";
+                }, 2000);
+            }, 4000);
         };
 
-        window.requestWithdraw = async () => {
-            const amount = parseFloat(document.getElementById('wAmount').value);
-            if(!amount) return showToast("Enter amount", "error");
-            const method = document.querySelector('input[name="wType"]:checked').value;
-            let details = "Cash";
-            if(method === 'bank') {
-                const bName = document.getElementById('bName').value;
-                const bAcc = document.getElementById('bAcc').value;
-                if(!bName || !bAcc) return showToast("Bank details required", "error");
-                details = `${bName} - ${bAcc}`;
+        // --- 2. INSTANT LOAN ---
+        window.openLoanModal = () => {
+            const bal = userData.balance;
+            const debt = userData.debt || 0;
+            const max = bal * 0.5; // 50%
+            
+            document.getElementById('loanBaseBalance').innerText = `Rs. ${bal}`;
+            document.getElementById('currentDebt').innerText = `Rs. ${debt}`;
+            document.getElementById('maxLoanAmt').innerText = `Rs. ${max}`;
+            document.getElementById('loanModal').classList.remove('hidden');
+        };
+
+        window.requestLoan = async () => {
+            const req = parseFloat(document.getElementById('loanAmountReq').value);
+            const max = userData.balance * 0.5;
+            
+            if(!req || req <= 0) return alert("Enter amount");
+            if(req > max) return alert("Limit Exceeded! Max 50% of savings.");
+
+            if(confirm("Confirm Instant Loan? This will be added to your Debt.")) {
+                // Here "Loan" means we give them cash (Withdrawal) but create a Debt record.
+                // It does NOT deduct from Balance immediately to keep the Tree growing, but debt must be paid to clear account.
+                
+                // For simplicity in this app: Loan = Cash In Hand, Debt = Record.
+                // We add a 'Loan' transaction request to Admin to give cash.
+                
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    debt: increment(req)
+                });
+                
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentUser.uid, userName: userData.name,
+                    type: "loan_request", amount: req, status: "pending", date: new Date(),
+                    details: "Instant Loan (50% rule)"
+                });
+                
+                alert("Loan Approved! Collect cash from agent.");
+                document.getElementById('loanModal').classList.add('hidden');
             }
-            await addDoc(collection(db, "transactions"), {
-                userId: currentUser.uid, userName: currentUser.displayName,
-                type: "withdraw", amount: amount, method: method, details: details, status: "pending", date: new Date()
-            });
-            showToast("Withdrawal Requested! Waiting for Admin.", "success");
         };
 
-        // CARD GENERATOR
+        // --- 3. MULTIPLE GOALS ---
+        window.openGoalManager = () => {
+            document.getElementById('goalModal').classList.remove('hidden');
+            renderGoals();
+        };
+
+        function renderGoals() {
+            const list = document.getElementById('goalsList');
+            list.innerHTML = "";
+            const goals = userData.goals || [];
+            
+            goals.forEach((g, idx) => {
+                const isActive = idx === (userData.activeGoalIndex || 0);
+                const bg = isActive ? "bg-green-900 border-green-500" : "bg-gray-700 border-gray-600";
+                
+                list.innerHTML += `
+                    <div onclick="switchGoal(${idx})" class="${bg} p-3 rounded-lg border flex justify-between items-center cursor-pointer hover:opacity-80">
+                        <div>
+                            <p class="font-bold text-sm text-white">${g.name}</p>
+                            <p class="text-xs text-gray-400">Target: Rs. ${g.target}</p>
+                        </div>
+                        ${isActive ? '✅' : ''}
+                    </div>
+                `;
+            });
+        }
+
+        window.addNewGoal = async () => {
+            const name = document.getElementById('newGoalName').value;
+            const target = parseFloat(document.getElementById('newGoalAmount').value);
+            if(!name || !target) return alert("Invalid details");
+
+            const newGoals = [...(userData.goals || []), { name, target }];
+            await updateDoc(doc(db, "users", currentUser.uid), { goals: newGoals });
+            
+            document.getElementById('newGoalName').value = "";
+            document.getElementById('newGoalAmount').value = "";
+            renderGoals();
+        };
+
+        window.switchGoal = async (idx) => {
+            await updateDoc(doc(db, "users", currentUser.uid), { activeGoalIndex: idx });
+            renderGoals();
+            // Dashboard updates automatically via snapshot listener
+        };
+
+        // --- CARD GEN ---
         window.generateCard = () => {
             const canvas = document.getElementById('cardCanvas');
             const ctx = canvas.getContext('2d');
-            const u = userDataGlobal;
+            const u = userData;
 
             const grad = ctx.createLinearGradient(0, 0, 1000, 600);
             grad.addColorStop(0, '#000000'); grad.addColorStop(0.4, '#1a1a1a'); grad.addColorStop(1, '#2c2c2c');
@@ -399,19 +413,31 @@
 
             ctx.font = 'bold 50px sans-serif'; ctx.fillStyle = '#eab308'; ctx.fillText('CNV SUPER SAVER', 60, 100);
             ctx.font = '30px sans-serif'; ctx.fillStyle = '#cccccc'; ctx.fillText('PREMIUM MEMBER', 60, 150);
+
             ctx.fillStyle = '#d4af37'; ctx.fillRect(60, 200, 120, 100);
             
             const acc = u.accountNo || "CNV0000000000";
             ctx.font = 'bold 70px monospace'; ctx.fillStyle = '#ffffff'; ctx.fillText(acc.replace(/(.{4})/g, '$1 '), 60, 420);
+
             ctx.font = '40px sans-serif'; ctx.fillStyle = '#eab308'; ctx.fillText(u.name.toUpperCase(), 60, 520);
             ctx.font = '30px sans-serif'; ctx.fillStyle = '#888888'; ctx.textAlign = 'right'; ctx.fillText(`SINCE: ${u.joinedDate || '2025'}`, 920, 520);
 
             const dataUrl = canvas.toDataURL("image/png");
             document.getElementById('cardImage').src = dataUrl;
             document.getElementById('downloadLink').href = dataUrl;
-            document.getElementById('downloadLink').download = `CNV_Card_${u.name.split(" ")[0]}.png`;
+            document.getElementById('downloadLink').download = `CNV_Card.png`;
             document.getElementById('cardModal').classList.remove('hidden');
         };
+
+        window.requestWithdraw = async () => {
+            await addDoc(collection(db, "transactions"), {
+                userId: currentUser.uid, userName: userData.name,
+                type: "withdraw", amount: userData.balance, status: "pending", date: new Date(),
+                details: "Full Goal Withdrawal"
+            });
+            alert("Withdrawal Requested!");
+        };
+
     </script>
 </body>
 </html>
