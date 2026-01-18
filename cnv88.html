@@ -17,8 +17,12 @@
 
         <div class="flex flex-wrap gap-2 mb-6">
             <button onclick="switchTab('users')" id="btn-users" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold">Users</button>
-            <button onclick="switchTab('withdraw')" id="btn-withdraw" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold">Withdrawals</button>
-            <button onclick="switchTab('loans')" id="btn-loans" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold">Loans</button>
+            <button onclick="switchTab('withdraw')" id="btn-withdraw" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold transition relative">
+                Withdrawals <span id="withCount" class="hidden absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full border border-gray-900 animate-pulse">0</span>
+            </button>
+            <button onclick="switchTab('loans')" id="btn-loans" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold transition relative">
+                Loans <span id="loanCount" class="hidden absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full border border-gray-900 animate-pulse">0</span>
+            </button>
         </div>
 
         <div id="view-users">
@@ -36,7 +40,7 @@
             <label class="text-xs text-gray-400">Select Goal:</label>
             <select id="goalSelector" class="w-full p-3 bg-gray-700 border border-gray-600 rounded mb-4 text-white mt-1"></select>
             <input type="number" id="addAmount" placeholder="Amount (Rs)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded mb-4 text-white font-bold text-lg">
-            <button onclick="confirmAddMoney()" class="w-full bg-green-600 hover:bg-green-500 p-3 rounded font-bold">Confirm Deposit & Add Spins 🎰</button>
+            <button onclick="confirmAddMoney()" class="w-full bg-green-600 hover:bg-green-500 p-3 rounded font-bold">Confirm Deposit & Bonus 🎰</button>
             <button onclick="closeModal('moneyModal')" class="w-full mt-3 text-gray-500 text-sm">Cancel</button>
         </div>
     </div>
@@ -54,7 +58,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, increment, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, increment, addDoc, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyBQ4b_qLp51HXYJc0Trtp6yG0lO7XSudQk", authDomain: "cnvbankbyuandy.firebaseapp.com", projectId: "cnvbankbyuandy", storageBucket: "cnvbankbyuandy.firebasestorage.app", messagingSenderId: "654524804107", appId: "1:654524804107:web:839811f4eb33b914786b0e" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app);
@@ -86,24 +90,52 @@
             document.getElementById('moneyModal').classList.remove('hidden');
         };
 
+        // --- UPDATED: DEPOSIT LOGIC WITH 0.5% BONUS ---
         window.confirmAddMoney = async () => {
             const amount = parseFloat(document.getElementById('addAmount').value);
             const goalIndex = document.getElementById('goalSelector').value;
             if(!amount) return alert("Enter amount");
 
-            if(!userGoals[goalIndex].saved) userGoals[goalIndex].saved = 0; userGoals[goalIndex].saved += amount;
-            let totalBal = 0; userGoals.forEach(g => totalBal += (g.saved || 0));
+            // Calculate current total balance first to check for 10k threshold
+            let currentTotal = 0; userGoals.forEach(g => currentTotal += (g.saved || 0));
+
+            // Bonus Calculation: If balance > 10,000, give Rs. 5 per 1000 (0.5%)
+            let bonusAmount = 0;
+            if (currentTotal > 10000) {
+                bonusAmount = amount * 0.005; // 0.5%
+            }
+
+            const totalDeposit = amount + bonusAmount;
+
+            if(!userGoals[goalIndex].saved) userGoals[goalIndex].saved = 0; 
+            userGoals[goalIndex].saved += totalDeposit;
+            
+            // Recalculate new total
+            let newTotal = 0; userGoals.forEach(g => newTotal += (g.saved || 0));
 
             const spinsToAdd = Math.floor(amount / 1000);
 
+            // Streak Logic
+            const uRef = doc(db, "users", selUid);
+            const uSnap = await getDoc(uRef);
+            const u = uSnap.data();
+            let str = u.streak || 0;
+            const last = u.lastDepositDate ? u.lastDepositDate.toDate() : null;
+            const today = new Date(); today.setHours(0,0,0,0);
+            let lastDate = new Date(0); if(last) { lastDate = new Date(last); lastDate.setHours(0,0,0,0); }
+            const diffTime = Math.abs(today - lastDate); const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) str++; else if (diffDays > 1) str = 1;
+
             await updateDoc(doc(db, "users", selUid), { 
-                goals: userGoals, balance: totalBal, streak: increment(1), 
+                goals: userGoals, balance: newTotal, streak: str, lastDepositDate: new Date(),
                 availableSpins: increment(spinsToAdd) 
             });
-            await addDoc(collection(db, "transactions"), { userId: selUid, userName: selName, type: "deposit", amount, details: `To: ${userGoals[goalIndex].name}`, date: new Date(), status: "success", method: "Admin" });
+            await addDoc(collection(db, "transactions"), { userId: selUid, userName: selName, type: "deposit", amount, details: `To: ${userGoals[goalIndex].name} (Bonus: ${bonusAmount})`, date: new Date(), status: "success", method: "Admin" });
             
             closeModal('moneyModal'); document.getElementById('addAmount').value = "";
-            alert(`Deposited! ${spinsToAdd} Spins Added.`);
+            let msg = `Deposited! ${spinsToAdd} Spins Added.`;
+            if(bonusAmount > 0) msg += ` + Rs. ${bonusAmount} Bonus Added!`;
+            alert(msg);
         };
 
         window.openDebtModal = (uid, name, debt) => { selectedUserId = uid; selectedUserName = name; selectedUserDebt = debt; document.getElementById('debtUserName').innerText = name; document.getElementById('currentDebtDisplay').innerText = debt; document.getElementById('debtModal').classList.remove('hidden'); };
@@ -115,17 +147,42 @@
             closeModal('debtModal'); document.getElementById('debtPayAmount').value = ""; alert("Paid!");
         };
 
-        window.approveWithdraw = async (txId, uid, amount) => { if(!confirm("Approve?")) return; await updateDoc(doc(db,"transactions",txId), { status: "success" }); await updateDoc(doc(db,"users",uid), { balance: increment(-amount) }); alert("Approved!"); };
+        window.approveWithdraw = async (txId, uid, amount, targetGoalName) => {
+            if(!confirm("Approve?")) return;
+            const uRef = doc(db, "users", uid);
+            const uSnap = await getDoc(uRef);
+            let goals = uSnap.data().goals || [];
+            let goalIdx = -1;
+            if(targetGoalName) goalIdx = goals.findIndex(g => g.name === targetGoalName);
+            if(goalIdx === -1) goalIdx = goals.findIndex(g => g.saved >= amount);
+            if(goalIdx === -1) return alert("Error: Insufficient Goal Balance");
+            goals[goalIdx].saved -= amount;
+            let totalBal = 0; goals.forEach(g => totalBal += (g.saved || 0));
+            await updateDoc(doc(db,"transactions",txId), { status: "success" });
+            await updateDoc(uRef, { goals: goals, balance: totalBal }); 
+            alert("Approved!");
+        };
+
         window.approveLoan = async (txId, uid, amount) => { if(!confirm("Approve?")) return; await updateDoc(doc(db,"transactions",txId), { status: "success" }); await updateDoc(doc(db,"users",uid), { debt: increment(amount) }); alert("Loan Approved!"); };
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
         
         onSnapshot(query(collection(db, "transactions"), where("status","==","pending"), where("type","==","loan_request")), (snap) => {
-            const list = document.getElementById('loanList'); list.innerHTML = snap.empty ? "<p class='text-gray-500'>No loans</p>" : "";
+            const list = document.getElementById('loanList'); 
+            const count = document.getElementById('loanCount');
+            count.innerText = snap.size; if(snap.size > 0) count.classList.remove('hidden'); else count.classList.add('hidden');
+            list.innerHTML = snap.empty ? "<p class='text-gray-500'>No loans</p>" : "";
             snap.forEach(d => { const t = d.data(); list.innerHTML += `<div class="bg-gray-800 p-4 rounded border-l-4 border-orange-500 shadow"><div class="flex justify-between"><h3>${t.userName}</h3><span class="text-orange-400 font-bold">Rs.${t.amount}</span></div><p class="text-xs text-gray-400">1% Fee Paid</p><button onclick="approveLoan('${d.id}','${t.userId}',${t.amount})" class="w-full mt-2 bg-green-600 py-1 rounded">Accept</button></div>`; });
         });
+        
         onSnapshot(query(collection(db, "transactions"), where("status","==","pending"), where("type","==","withdraw")), (snap) => {
-            const list = document.getElementById('withdrawList'); list.innerHTML = snap.empty ? "<p class='text-gray-500'>No withdrawals</p>" : "";
-            snap.forEach(d => { const t = d.data(); list.innerHTML += `<div class="bg-gray-800 p-4 rounded border-l-4 border-red-500 shadow"><div class="flex justify-between"><h3>${t.userName}</h3><span class="text-red-400 font-bold">Rs.${t.amount}</span></div><button onclick="approveWithdraw('${d.id}','${t.userId}',${t.amount})" class="w-full mt-2 bg-red-600 py-1 rounded">Approve</button></div>`; });
+            const list = document.getElementById('withdrawList');
+            const count = document.getElementById('withCount');
+            count.innerText = snap.size; if(snap.size > 0) count.classList.remove('hidden'); else count.classList.add('hidden');
+            list.innerHTML = snap.empty ? "<p class='text-gray-500'>No withdrawals</p>" : "";
+            snap.forEach(d => { 
+                const t = d.data(); const goalParam = t.targetGoal ? `'${t.targetGoal}'` : 'null';
+                list.innerHTML += `<div class="bg-gray-800 p-4 rounded border-l-4 border-red-500 shadow"><div class="flex justify-between"><h3>${t.userName}</h3><span class="text-red-400 font-bold">Rs.${t.amount}</span></div><p class="text-xs text-gray-400">${t.targetGoal || 'Unknown Goal'}</p><button onclick="approveWithdraw('${d.id}','${t.userId}',${t.amount}, ${goalParam})" class="w-full mt-2 bg-red-600 py-1 rounded">Approve</button></div>`; 
+            });
         });
 
         window.filterUsers = () => { const term = document.getElementById('userSearch').value.toLowerCase(); document.querySelectorAll('.user-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(term) ? 'block' : 'none'); };
